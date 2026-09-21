@@ -139,23 +139,30 @@ share the same `aggregationField` value are merged into one element instead of d
 
 ## Performance
 
-The engine is designed to avoid JSON conversion and per-request rule parsing: rules are compiled once per
-template version into plain condition objects (no `Expression.Compile`, so it works under NativeAOT), events are
-read straight off the parsed `JsonElement` with no POCO or dictionary deserialisation, fragments are immutable and
-shared, the merge is written to the response as a plan rather than a cloned tree, and compiled templates are held
-in a version-checked in-memory cache. We think that makes it a good fit for a low-latency rules service, but **we
-have not benchmarked other engines head to head**, and against a hand-specialised naive baseline it wins on
-allocations but not on CPU time at 100 rules. Here are our numbers and how to reproduce them.
+The design works on the request's JSON directly: rules are compiled once per template version, events are read
+straight off the parsed UTF-8 `JsonElement`, and the response is written from a merge plan. There is no conversion
+into a domain/DTO model on the way in and none on the way out. A typical engine hosted as a service pays to
+deserialize the body into a (often deep) model and serialize a result model back. The design is aimed at being among
+the fastest JSON-hosted rule engines; that is intent, and the evidence is below. **We have not benchmarked named
+third-party engines.** We compared against a hand-written "wrapped engine" baseline (source-generated
+System.Text.Json into a deep ~45-property DTO, rules read from typed properties, result model serialized back, given
+every advantage), in-process and over HTTP on the same hardware. i7-13700KF, WSL2, .NET 10, 16 connections, 10 rules
+unless stated:
 
-| Measurement (i7-13700KF, WSL2, .NET 10) | Result |
-|---|---|
-| In-process, 10 rules, 1 event: parse + match + merge + write | 1.5 us, 2.7 KB allocated |
-| In-process, 100 rules, 1 event | 9.1 us, 8.3 KB allocated |
-| Compile a 100-rule template (once per version) | 64 us |
-| HTTP, NativeAOT container, 10 rules, 1 event, 16 connections | about 30,000 req/s, p99 1.7 ms |
-| Container size / resident memory | 38 MB image, about 20-60 MiB |
+| Measurement | Engine | Wrapped baseline |
+|---|---|---|
+| In-process, deep 9 KB event, 10 rules | 17 us, 8 KB alloc | 31 us, 40 KB alloc |
+| In-process, 100 deep events (0.9 MB), 10 rules | 1.7 ms | 3.5 ms |
+| HTTP, 100 deep events (0.9 MB) | 966 req/s, p99 35 ms | 148 req/s, p99 201 ms |
+| HTTP, 1 deep event (9 KB) | 18,900 req/s, p99 3.0 ms | 21,100 req/s, p99 2.2 ms |
+| HTTP, 1 small event (303 B) | 28,600 req/s, p99 1.8 ms | 32,800 req/s, p99 1.5 ms |
+| HTTP, 100 small events, 100 rules | 594 req/s | 7,940 req/s |
 
-Details, methodology, caveats and commands: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+So the direct-JSON design pays off on large or deep bodies (about 2x in-process, 3-6x over HTTP) and is level to
+10-20% behind on single events; on small payloads with many matching rules the current per-rule cost makes it
+slower than a hand-coded typed loop (up to 13x in the worst row). We report that plainly; the per-rule cost is the
+next optimisation target. Native AOT container: 38 MB image, about 20-60 MiB resident. Methodology, all numbers,
+caveats and commands: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ## Deployment
 

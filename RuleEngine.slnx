@@ -5,5 +5,7 @@
   <Folder Name="/tst/">
     <Project Path="tst/RuleEngine.Tests/RuleEngine.Tests.csproj" />
     <Project Path="tst/RuleEngine.Benchmarks/RuleEngine.Benchmarks.csproj" />
+    <Project Path="tst/RuleEngine.Wrapped/RuleEngine.Wrapped.csproj" />
+    <Project Path="tst/RuleEngine.WrappedHost/RuleEngine.WrappedHost.csproj" />
   </Folder>
 </Solution>

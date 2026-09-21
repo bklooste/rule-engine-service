@@ -6,6 +6,7 @@ actually changed.
 
 ## Unreleased
 
+- Performance: added a fair "wrapped engine" baseline (deep DTO model, source-generated System.Text.Json) to the benchmarks and an in-repo HTTP host for it (`tst/RuleEngine.Wrapped`, `tst/RuleEngine.WrappedHost`, not shipped); `docs/PERFORMANCE.md` and the README now report engine vs wrapped in-process and over HTTP, including where the engine loses. Corrected earlier single-event figures that used a non-matching event.
 - Added BenchmarkDotNet project `tst/RuleEngine.Benchmarks`, measured HTTP throughput, and `docs/PERFORMANCE.md` with a Performance section in the README.
 - Initial release: extracted from the `plat-templates` service of the lode platform. Same v2 HTTP API, same ETag/`If-Match`
   semantics and, at default settings, the same Redis key shape (`{ENVIRONMENT}:plat-templates:{id}-templates…`), so moving

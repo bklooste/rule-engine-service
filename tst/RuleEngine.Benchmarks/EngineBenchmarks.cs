@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 
 using BenchmarkDotNet.Attributes;
 
+using RuleEngine.Wrapped;
 using Templates;
 using Templates.Compiled;
 using Templates.Data;
@@ -15,6 +16,9 @@ namespace RuleEngine.Benchmarks;
 // conditions (wildcard, equality, numeric compare) and a fragment with two {path} tokens; roughly half the
 // rules match the sample events. "Evaluate" rows start from the event's UTF-8 bytes and end with the
 // response bytes, i.e. the same span of work the service does per request minus the HTTP hop.
+// The "Wrapped" rows are a typical wrapped-engine architecture (bytes -> deep DTO model -> rules on typed properties
+// -> result model -> bytes), hand-written and given every advantage (source-generated System.Text.Json, direct
+// property access). It is NOT a named third-party product. "Deep" payload = ~4 KB deep event; "Small" = flat 12 fields.
 // The "Naive" rows are a deliberately simple in-repo baseline (JsonNode tree + hand-interpreted conditions +
 // DeepClone merge). It is NOT another rule engine; it only shows what the compile-once/no-tree design saves.
 [MemoryDiagnoser]
@@ -29,6 +33,10 @@ public class EngineBenchmarks
     private CompiledV2Template logic = null!;
     private byte[] oneEvent = null!;
     private byte[] batchEvents = null!;
+    private byte[] deepOne = null!;
+    private byte[] deepBatch = null!;
+    private WrappedEngine wrapped = null!;
+    private readonly ArrayBufferWriter<byte> wOut = new(1024 * 1024);
     private JsonElement oneParsed;
     private JsonDocument oneDoc = null!;
     private JsonNode[] naiveRules = null!;
@@ -64,20 +72,17 @@ public class EngineBenchmarks
         flat = CompiledV2Template.Compile(flatTemplate);
         logic = CompiledV2Template.Compile(logicTemplate);
 
-        oneEvent = Encoding.UTF8.GetBytes(EventJson(0));
-        batchEvents = Encoding.UTF8.GetBytes("[" + string.Join(",", Enumerable.Range(0, 100).Select(EventJson)) + "]");
+        oneEvent = Payloads.Bytes(Payloads.Small, false);
+        batchEvents = Payloads.Bytes(Payloads.Small, true);
+        deepOne = Payloads.Bytes(Payloads.Deep, false);
+        deepBatch = Payloads.Bytes(Payloads.Deep, true);
+        wrapped = new WrappedEngine(Rules);
         oneDoc = JsonDocument.Parse(oneEvent);
         oneParsed = oneDoc.RootElement;
     }
 
     private static Template ParseTemplate(JsonArray rules) =>
         JsonSerializer.Deserialize(new JsonObject { ["templates"] = rules, ["aggregationField"] = "name" }.ToJsonString(), AppJsonSerializerContext.GlobalDefault.Template)!;
-
-    private static string EventJson(int i) => $$"""
-        {"name":"Race {{i}} - Maiden Special Weight","eventId":"10820{{i}}","meetingId":"470757036917785845","raceNumber":{{i % 8}},
-         "trackName":"Canterbury Park","eventType":"{{(i % 3 == 0 ? "Sport-Soccer" : "Racing-Thoroughbred")}}","startTime":"2023-07-30T00:07:00Z",
-         "state":"MN","country":"USA","status":"Open","isFuture":false,"class":"MAIDEN SPECIAL WEIGHT"}
-        """;
 
     // ---- compile (once per template version, never per request) ----
     [Benchmark] public object Compile_Flat() => CompiledV2Template.Compile(flatTemplate);
@@ -118,6 +123,16 @@ public class EngineBenchmarks
         writer.Flush();
         return output.WrittenCount;
     }
+
+    // ---- engine on the deep payload: it ignores what it does not read ----
+    [Benchmark] public int Evaluate_Deep_1Event() => Evaluate(flat, deepOne, single: true);
+    [Benchmark] public int Evaluate_Deep_100Events() => Evaluate(flat, deepBatch, single: false);
+
+    // ---- wrapped baseline (bytes -> model -> rules -> model -> bytes) ----
+    [Benchmark] public int Wrapped_Small_1Event() { wOut.ResetWrittenCount(); return wrapped.EvaluateSmall(oneEvent, true, wOut); }
+    [Benchmark] public int Wrapped_Small_100Events() { wOut.ResetWrittenCount(); return wrapped.EvaluateSmall(batchEvents, false, wOut); }
+    [Benchmark] public int Wrapped_Deep_1Event() { wOut.ResetWrittenCount(); return wrapped.EvaluateDeep(deepOne, true, wOut); }
+    [Benchmark] public int Wrapped_Deep_100Events() { wOut.ResetWrittenCount(); return wrapped.EvaluateDeep(deepBatch, false, wOut); }
 
     // ---- naive baseline (same rules, same output shape, no compilation) ----
     [Benchmark] public int Naive_Evaluate_1Event() => NaiveEvaluate(oneEvent, single: true);

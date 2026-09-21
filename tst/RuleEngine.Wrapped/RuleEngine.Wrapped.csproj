@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Benchmark-only comparison engine: the "typical wrapped-engine architecture" (bytes -> model -> rules -> model -> bytes),
+	     hand-written with source-generated System.Text.Json and direct property access. Not shipped. -->
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>false</IsTestProject>
+		<IsAotCompatible>true</IsAotCompatible>
+		<InvariantGlobalization>true</InvariantGlobalization>
+	</PropertyGroup>
+
+</Project>
