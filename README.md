@@ -4,14 +4,20 @@
 [![Image](https://img.shields.io/badge/ghcr.io-rule--engine--service-blue)](https://github.com/bklooste/rule-engine-service/pkgs/container/rule-engine-service%2Fservice)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A small, fast, NativeAOT rule engine over HTTP. You store **templates** — named sets of rules, each a
-condition (`dataToMatch`) and a JSON fragment (`matchFragment`) — and POST a batch of JSON events at
-them. Every rule whose condition matches an event contributes its fragment, and the fragments are
-merged into one result per event. Templates live in Redis with `ETag`/`If-Match` optimistic
-concurrency, per-version history and rollback.
+**Rules over HTTP, without the JSON tax.** Post JSON events, get merged results back — the engine works
+on your request's JSON directly, so there is no deserializing into models on the way in and no serializing
+them back on the way out. That is where most rule services burn their time, and it is the whole design.
 
-Nothing in it is domain-specific: a template id is an opaque string you choose (use it as a tenant,
-a product, a brand…).
+- **Fast where it counts** — on large, deep payloads it is 3–6x the throughput of a hand-written typed-model baseline over HTTP, with about a fifth of the allocations ([numbers](#performance)).
+- **Tiny** — one 38 MB NativeAOT image, ~20–60 MiB resident. Multi-arch, non-root, public on GHCR.
+- **Safe to edit live** — templates versioned in Redis with `ETag`/`If-Match`, full history, one-call rollback. A `PUT` reaches every replica in seconds.
+- **Rules you can trust** — every rule is compiled and validated on `PUT`, and the JsonLogic frontend is checked against the flat matcher by oracle tests.
+- **Boring to run** — plain HTTP + JSON, one Redis, `/health`, OpenTelemetry via standard `OTEL_*` env vars, OpenAPI document included. No SDK, no DSL server, no model to keep in sync.
+
+You store **templates** — named sets of rules, each a condition (`dataToMatch`) and a JSON fragment
+(`matchFragment`) — and POST a batch of events at them. Every rule whose condition matches an event
+contributes its fragment, and the fragments are merged into one result per event. A template id is an
+opaque string you choose (a tenant, a product, a brand…); nothing in the engine is domain-specific.
 
 ## Quick start
 
@@ -139,30 +145,28 @@ share the same `aggregationField` value are merged into one element instead of d
 
 ## Performance
 
-The design works on the request's JSON directly: rules are compiled once per template version, events are read
-straight off the parsed UTF-8 `JsonElement`, and the response is written from a merge plan. There is no conversion
-into a domain/DTO model on the way in and none on the way out. A typical engine hosted as a service pays to
-deserialize the body into a (often deep) model and serialize a result model back. The design is aimed at being among
-the fastest JSON-hosted rule engines; that is intent, and the evidence is below. **We have not benchmarked named
-third-party engines.** We compared against a hand-written "wrapped engine" baseline (source-generated
-System.Text.Json into a deep ~45-property DTO, rules read from typed properties, result model serialized back, given
-every advantage), in-process and over HTTP on the same hardware. i7-13700KF, WSL2, .NET 10, 16 connections, 10 rules
-unless stated:
+Most rule services are wrapped engines: deserialize the body into a (usually deep) model, run the rules over
+objects, serialize a result model back. On real-world payloads — nested objects, lists, attribute bags — that
+conversion, not rule matching, is the cost. This engine skips it: rules are compiled once per template version,
+events are read straight off the parsed UTF-8 JSON, and the response is written from a merge plan.
 
-| Measurement | Engine | Wrapped baseline |
-|---|---|---|
-| In-process, deep 9 KB event, 10 rules | 17 us, 8 KB alloc | 31 us, 40 KB alloc |
-| In-process, 100 deep events (0.9 MB), 10 rules | 1.7 ms | 3.5 ms |
-| HTTP, 100 deep events (0.9 MB) | 966 req/s, p99 35 ms | 148 req/s, p99 201 ms |
-| HTTP, 1 deep event (9 KB) | 18,900 req/s, p99 3.0 ms | 21,100 req/s, p99 2.2 ms |
-| HTTP, 1 small event (303 B) | 28,600 req/s, p99 1.8 ms | 32,800 req/s, p99 1.5 ms |
-| HTTP, 100 small events, 100 rules | 594 req/s | 7,940 req/s |
+Measured against a hand-written wrapped-engine baseline (source-generated System.Text.Json into a deep ~45-property
+DTO, rules read from typed properties — every advantage given), same hardware, in-process and over HTTP
+(i7-13700KF, WSL2, .NET 10, 16 connections, 10 rules):
 
-So the direct-JSON design pays off on large or deep bodies (about 2x in-process, 3-6x over HTTP) and is level to
-10-20% behind on single events; on small payloads with many matching rules the current per-rule cost makes it
-slower than a hand-coded typed loop (up to 13x in the worst row). We report that plainly; the per-rule cost is the
-next optimisation target. Native AOT container: 38 MB image, about 20-60 MiB resident. Methodology, all numbers,
-caveats and commands: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+| Workload | This engine | Wrapped baseline | |
+|---|---|---|---|
+| **100 deep events per request** (0.9 MB), HTTP | **966 req/s**, p99 35 ms | 148 req/s, p99 201 ms | **6.5x** |
+| 100 deep events, 100 rules, HTTP | **418 req/s** | 137 req/s | **3.1x** |
+| 1 deep event (9 KB), in-process | **17 µs**, 8 KB alloc | 31 µs, 40 KB alloc | **1.8x**, 5x fewer allocs |
+| 100 deep events, in-process | **1.7 ms** | 3.5 ms | **2x** |
+| 1 deep event, HTTP | 18.9k req/s | 21.1k req/s | level (–10%) |
+
+The larger and deeper the payload, the bigger the win. The honest limits: on tiny events with many matching rules
+a hand-coded typed loop is faster today (per-rule cost is being optimised — see the
+[open issue](https://github.com/bklooste/rule-engine-service/issues/11)), and we have not benchmarked named third-party
+engines — the baseline is ours, so treat the table as evidence for the design, not a leaderboard. Reproduce every
+number with the commands in [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
 
 ## Deployment
 
