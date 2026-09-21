@@ -1,0 +1,5 @@
+{
+  "aggregationField": "code",
+  "updatedAt": "{{now}}",
+  "templates": "{{templates}}"
+}

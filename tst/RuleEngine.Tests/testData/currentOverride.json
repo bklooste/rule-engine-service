@@ -1,0 +1,3599 @@
+{
+    "templates": [
+        {
+            "name": "override2ndFetch",
+            "dataToMatch": {},
+            "matchFragment": {
+                "products": "{products}"
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "dp",
+            "dataToMatch": {
+                "isSport": false,
+                "customerTags": [
+                    "allowDriftProtection"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "code": "DP",
+                        "disable": false
+                    },
+                    {
+                        "code": "DPPLC",
+                        "disable": false
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "OverrideTags-vip",
+            "dataToMatch": {
+                "customerTags": [
+                    "vip"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:07:10.4869414Z"
+        },
+        {
+            "name": "OverrideTags-prmm",
+            "dataToMatch": {
+                "customerTags": [
+                    "prmm"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:07:42.0660964Z"
+        },
+        {
+            "name": "OverrideTags-new",
+            "dataToMatch": {
+                "customerTags": [
+                    "new"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:07:47.2404607Z"
+        },
+        {
+            "name": "OverrideTags-nvrbt",
+            "dataToMatch": {
+                "customerTags": [
+                    "nvrbt"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:07:51.9629885Z"
+        },
+        {
+            "name": "OverrideTags-notrd",
+            "dataToMatch": {
+                "customerTags": [
+                    "notrd"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:07:55.978886Z"
+        },
+        {
+            "name": "OverrideTags-prmr",
+            "dataToMatch": {
+                "customerTags": [
+                    "prmr"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:08:30.4572052Z"
+        },
+        {
+            "name": "OverrideTags-good",
+            "dataToMatch": {
+                "customerTags": [
+                    "good"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:08:50.8335589Z"
+        },
+        {
+            "name": "OverrideTags-goodb",
+            "dataToMatch": {
+                "customerTags": [
+                    "goodb"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:08:54.3476454Z"
+        },
+        {
+            "name": "OverrideTags-goodc",
+            "dataToMatch": {
+                "customerTags": [
+                    "goodc"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:08:58.412445Z"
+        },
+        {
+            "name": "OverrideTags-goodnb",
+            "dataToMatch": {
+                "customerTags": [
+                    "goodnb"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:09:03.4279345Z"
+        },
+        {
+            "name": "OverrideTags-good d",
+            "dataToMatch": {
+                "customerTags": [
+                    "good d"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:09:51.5132595Z"
+        },
+        {
+            "name": "OverrideTags-prmwtc",
+            "dataToMatch": {
+                "customerTags": [
+                    "prmwtc"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:10:38.7698705Z"
+        },
+        {
+            "name": "OverrideTags-prwtno",
+            "dataToMatch": {
+                "customerTags": [
+                    "prwtno"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:10:50.3695043Z"
+        },
+        {
+            "name": "OverrideTags-hard",
+            "dataToMatch": {
+                "customerTags": [
+                    "hard"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:11:51.9599896Z"
+        },
+        {
+            "name": "OverrideTags-hard2",
+            "dataToMatch": {
+                "customerTags": [
+                    "hard2"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:11:55.8681423Z"
+        },
+        {
+            "name": "OverrideTags-bonhun",
+            "dataToMatch": {
+                "customerTags": [
+                    "bonhun"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:12:00.5924868Z"
+        },
+        {
+            "name": "OverrideTags-arb",
+            "dataToMatch": {
+                "customerTags": [
+                    "arb"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:12:16.0607206Z"
+        },
+        {
+            "name": "OverrideTags-arbdel",
+            "dataToMatch": {
+                "customerTags": [
+                    "arbdel"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:12:18.5690344Z"
+        },
+        {
+            "name": "OverrideTags-prmltd",
+            "dataToMatch": {
+                "customerTags": [
+                    "prmltd"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {}
+                    }
+                ]
+            },
+            "createdAt": "2025-05-07T23:12:55.7364029Z"
+        },
+        {
+            "name": "OverrideEventId-1672396",
+            "dataToMatch": {
+                "eventId": "1672396"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    }
+                ]
+            },
+            "createdAt": "2025-05-22T00:28:38.5903296Z"
+        },
+        {
+            "name": "OverrideEventId-1672398",
+            "dataToMatch": {
+                "eventId": "1672398"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 12,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "FPLACE",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "BOB",
+                        "description": "",
+                        "disable": true,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "BTSP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "MT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "BT",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICPLC",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "MTP",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "SRM",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "TF",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICFIRST_FOUR",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTRIFECTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEXACTA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICEARLY_QUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUADRELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICDOUBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICBIG_6",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICTREBLE",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    },
+                    {
+                        "name": "",
+                        "code": "VICQUINELLA",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 0
+                        }
+                    }
+                ]
+            },
+            "createdAt": "2025-05-22T00:29:06.2441304Z"
+        },
+        {
+            "name": "OverrideEventId-1672399",
+            "dataToMatch": {
+                "eventId": "1672399"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "FWIN",
+                        "description": "",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": 12,
+                            "maxWin": 0
+                        }
+                    }
+                ]
+            },
+            "createdAt": "2025-05-22T00:30:24.8639244Z"
+        }
+    ],
+    "aggregationField": "code",
+    "changedBy": "Unknown",
+    "updatedAt": "2025-05-22T00:30:24.8691282Z"
+}

@@ -1,0 +1,7 @@
+{
+    "type": "Deposit",
+    "brand": "demo",
+    "customerId": "C001",
+    "amount": 50,
+    "currency": "AUD"
+}

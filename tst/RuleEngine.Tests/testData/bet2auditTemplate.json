@@ -1,0 +1,23 @@
+{
+    "templates": [
+        {
+            "name": "bet2audit",
+            "dataToMatch": {
+                "betId": "*"
+            },
+            "matchFragment": {
+                "body": {
+                    "brand": "{brand}",
+                    "changeType": "PlaceBet",
+                    "changeKey": "{betId}",
+                    "changeValue": "{betId}",
+                    "changedBy": "{customerId}",
+                    "message": "Bet placed"
+                },
+                "Url": "http://plat-audit/v1/audit/single",
+                "Method": "POST"
+            }
+        }
+    ],
+    "aggregationField": "code"
+}

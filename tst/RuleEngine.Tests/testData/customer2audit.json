@@ -1,0 +1,20 @@
+[
+    {
+        "name": "bet2audit",
+        "dataToMatch": {
+            "type": "Deposit"
+        },
+        "matchFragment": {
+            "body": {
+                "brand": "{brand}",
+                "changeType": "Deposit",
+                "changeKey": "{customerId}",
+                "changeValue": "{amount}",
+                "changedBy": "{customerId}",
+                "message": "{currency} Deposit placed"
+            },
+            "Url": "http://plat-audit/v1/audit/single",
+            "Method": "POST"
+        }
+    }
+]

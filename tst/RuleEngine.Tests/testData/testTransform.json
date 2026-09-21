@@ -1,0 +1,12 @@
+[
+    {
+        "name": "betids",
+        "dataToMatch": {
+            "betId": "*"
+        },
+        "matchFragment": {
+            "Status": "{status}",
+            "SentBetId": "{betId}"
+        }
+    }
+]

@@ -1,0 +1,1210 @@
+{
+    "templates": [
+        {
+            "name": "sport",
+            "dataToMatch": {
+                "eventType": "Sports-*"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "BetGenius",
+                         "backupSource": null,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "sport SGM",
+            "dataToMatch": {
+                "eventType": "Sports-*"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Same Game Multi",
+                        "code": "SAME_GAME_MULTI",
+                        "description": "",
+                        "marketType": "same_game_multi",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "srm",
+            "dataToMatch": {
+                "eventType": "Racing-Thoroughbred",
+                "startTime": "<{ago(12h)}",
+                "marketTypes": "win",
+                "country": [
+                    "AUS",
+                    "NZL"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Same Race Multi",
+                        "code": "SRM",
+                        "description": "",
+                        "marketType": "same_race_multi",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "dp",
+            "dataToMatch": {
+                "eventType": "Racing-*"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Drift Protection",
+                        "code": "DP",
+                        "description": "DP Win",
+                        "marketType": "win",
+                        "disable": true,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "order": 100,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "Drift Protection Place",
+                        "code": "DPPLC",
+                        "description": "DP Place",
+                        "marketType": "place",
+                        "disable": true,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "order": 101,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "srm dogs",
+            "dataToMatch": {
+                "eventType": "Racing-Greyhounds",
+                "startTime": "<{ago(1h)}",
+                "marketTypes": "win",
+                "country": [
+                    "AUS",
+                    "NZL"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Same Race Multi",
+                        "code": "SRM",
+                        "description": "",
+                        "marketType": "same_race_multi",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 1000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingint",
+            "dataToMatch": {
+                "country": "!AUS",
+                "eventType": "Racing-Thoroughbred"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 1000,
+                            "maxPool": 5000
+                        }
+                    },
+                    {
+                        "name": "VT",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 2000,
+                            "maxWin": 5000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingmetro",
+            "dataToMatch": {
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Thoroughbred",
+                "locationClass": "Metro"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 1000,
+                            "maxPool": 5000
+                        }
+                    },
+                    {
+                        "name": "BT",
+                        "code": "BT",
+                        "description": "Best Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 2000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 1000,
+                            "maxPool": 5000
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 2000,
+                            "maxWin": 5000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "BTSP",
+                        "code": "BTSP",
+                        "description": "Best Tote & SP",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 2000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "TF",
+                        "code": "TF",
+                        "description": "Top Fluc",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 2000,
+                            "maxWin": 5000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingcountry",
+            "dataToMatch": {
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Thoroughbred",
+                "locationClass": "Country"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "BT",
+                        "code": "BT",
+                        "description": "Best Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "BTSP",
+                        "code": "BTSP",
+                        "description": "Best Tote & SP",
+                        "marketType": "tote_win",
+                        "disable": true,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 2000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingprov",
+            "dataToMatch": {
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Thoroughbred",
+                "locationClass": "Provincial"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "BTSP",
+                        "code": "BTSP",
+                        "description": "Best Tote & SP",
+                        "marketType": "tote_win",
+                        "disable": true,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 2000,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "BT",
+                        "code": "BT",
+                        "description": "Best Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": 0,
+                            "maxWin": 500,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingmeeting-gawler-nsw",
+            "dataToMatch": {
+                "eventType": "Racing-Thoroughbred",
+                "venueName": "gawler"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 500,
+                            "maxPool": 2500
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racing-greyhound-int",
+            "dataToMatch": {
+                "country": "!AUS",
+                "eventType": "Racing-Greyhounds"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "VT",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racing-aus-greyhounds",
+            "dataToMatch": {
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Greyhounds"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": true,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": true,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "Vic Win",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingmeeting-g-daytonabeach",
+            "dataToMatch": {
+                "eventType": "Racing-Greyhounds",
+                "venueName": "daytona beach"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racing-harness-int",
+            "dataToMatch": {
+                "country": "!AUS",
+                "eventType": "Racing-Harness"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "VT",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "Tote Place",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 500,
+                            "maxWin": 2500,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racing-aus-harness",
+            "dataToMatch": {
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Harness"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "MTP",
+                        "code": "MTP",
+                        "description": "Middle Tote Place",
+                        "marketType": "tote_place",
+                        "disable": true,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "Vic Win",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": true,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "",
+                        "marketType": "tote_place",
+                        "disable": true,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingmeeting-h-milan",
+            "dataToMatch": {
+                "eventType": "Racing-Harness",
+                "venueName": "milan"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "Vic Win",
+                        "code": "VICWin",
+                        "description": "Tote Win",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    },
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "",
+                        "backupSource": "",
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "taggroup-dogs-vip",
+            "dataToMatch": {
+                "eventType": "Racing-Greyhounds",
+                "customerTags": [
+                    "vip"
+                ],
+                "country": [
+                    "AUS",
+                    "NZL"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "MT",
+                        "code": "MT",
+                        "description": "Middle Tote",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "taggroup-harness-vip",
+            "dataToMatch": {
+                "eventType": "Racing-Harness",
+                "customerTags": [
+                    "vip"
+                ],
+                "country": [
+                    "AUS",
+                    "NZL"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "",
+                        "marketType": "tote_place",
+                        "disable": false,
+                        "isAuto": false,
+                        "formula": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "taggroup-horses-vip",
+            "dataToMatch": {
+                "eventType": "Racing-Thoroughbred",
+                "customerTags": [
+                    "vip"
+                ],
+                "country": [
+                    "AUS",
+                    "NZL"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "VT",
+                        "code": "VICWin",
+                        "marketType": "tote_place",
+                        "disable": true
+                    },
+                    {
+                        "name": "Vic Place",
+                        "code": "VICPlc",
+                        "description": "",
+                        "marketType": "tote_place",
+                        "disable": true,
+                        "isAuto": false,
+                        "formula": null,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 600,
+                            "maxPool": 3000
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "group-racingmetro-bob",
+            "dataToMatch": {
+                "startTime": ">{ago(30m)}",
+                "marketTypes": "tote_win",
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Thoroughbred",
+                "locationClass": "Metro",
+                "customerTags": [
+                    "vip",
+                    "vip b",
+                    "new"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "BOB",
+                        "code": "BTTF",
+                        "description": "Best of the Best",
+                        "marketType": "tote_win",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": "RedZone",
+                        "backupSource": "Orange",
+                        "order": 19,
+                        "limits": {
+                            "maxStake": null,
+                            "maxWin": 1000,
+                            "maxPool": 5000
+                        }
+                    },
+                    {
+                        "name": "BTSP",
+                        "code": "BTSP",
+                        "disable": true
+                    },
+                    {
+                        "name": "TF",
+                        "code": "TF",
+                        "disable": true
+                    },
+                    {
+                        "name": "BT",
+                        "code": "BT",
+                        "disable": true
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "taggroup-horses-notmetro",
+            "dataToMatch": {
+                "marketTypes": "tote_win",
+                "country": [
+                    "AUS",
+                    "NZL"
+                ],
+                "eventType": "Racing-Thoroughbred",
+                "locationClass": [
+                    "Provincial",
+                    "Country"
+                ],
+                "customerTags": [
+                    "vip"
+                ]
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "BT",
+                        "code": "BT",
+                        "disable": true
+                    },
+                    {
+                        "name": "BTSP",
+                        "code": "BTSP",
+                        "disable": true
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "exchange-auto",
+            "dataToMatch": {
+                "marketTypes": "exchange"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "",
+                        "code": "",
+                        "description": "",
+                        "marketType": "*",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 10000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        },
+        {
+            "name": "exchange-manual",
+            "dataToMatch": {
+                "marketTypes": "exchange"
+            },
+            "matchFragment": {
+                "products": [
+                    {
+                        "name": "Exchange",
+                        "code": "EXCHANGE",
+                        "description": "Prediction Market",
+                        "marketType": "exchange",
+                        "disable": false,
+                        "isAuto": false,
+                        "source": null,
+                        "backupSource": null,
+                        "limits": {
+                            "maxStake": 10000,
+                            "maxWin": 100000,
+                            "maxPool": null
+                        }
+                    }
+                ]
+            },
+            "createdAt": "0001-01-01T00:00:00"
+        }
+    ],
+    "aggregationField": "code",
+    "changedBy": "Default",
+    "updatedAt": "2025-03-18T22:23:17.9503863Z"
+}

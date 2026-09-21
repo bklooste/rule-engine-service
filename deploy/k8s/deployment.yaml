@@ -1,0 +1,48 @@
+# Node-agnostic on purpose: no nodeSelector, no affinity, no tolerations. The pod runs on any node
+# that can reach its dependencies over the network. Redis is an external endpoint, not a node pin.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rule-engine-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: rule-engine-service }
+  template:
+    metadata:
+      labels: { app: rule-engine-service }
+    spec:
+      containers:
+        - name: service
+          image: ghcr.io/bklooste/rule-engine-service/service:2.0   # pin an explicit version
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ConnectionStrings__Redis
+              value: redis.default.svc:6379        # your Redis
+            - name: ENVIRONMENT
+              value: prod
+            # Secrets: mount a Secret and point at it instead of a plain value —
+            # - { name: ConnectionStrings__Redis_FILE, value: /secrets/redis }
+          readinessProbe:
+            httpGet: { path: /health, port: 8080 }
+          livenessProbe:
+            httpGet: { path: /health, port: 8080 }
+            initialDelaySeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 256Mi }
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rule-engine-service
+spec:
+  selector: { app: rule-engine-service }
+  ports:
+    - port: 80
+      targetPort: 8080

@@ -1,0 +1,92 @@
+[
+    {
+        "name": "Race 5 - Maiden Special Weight",
+        "eventId": "1082091",
+        "meetingId": "470757036917785845",
+        "raceNumber": 5,
+        "trackName": "Canterbury Park",
+        "eventType": "Racing-Thoroughbred",
+        "startTime": "2023-07-30T00:07:00Z",
+        "state": "MN",
+        "country": "USA",
+        "status": "Open",
+        "isFuture": false,
+        "class": "MAIDEN SPECIAL WEIGHT",
+        "customerTags": [
+            "vip"
+        ],
+        "products": [
+            {
+                "name": "Win",
+                "code": "FWIN",
+                "limits": {
+                    "maxStake": 500,
+                    "maxWin": 50000,
+                    "maxPool": null
+                },
+                "disable": false,
+                "source": "BetGenius",
+                "backupSource": null,
+                "order": 1
+            },
+            {
+                "name": "Custom Product",
+                "code": "CUSTOM1",
+                "limits": {
+                    "maxStake": 100,
+                    "maxWin": 1000,
+                    "maxPool": null
+                },
+                "disable": false,
+                "source": "Manual",
+                "backupSource": null,
+                "order": 2
+            }
+        ]
+    },
+    {
+        "name": "Race 12 - Maiden Special Weight",
+        "eventId": "1082169",
+        "meetingId": "470768745753610374",
+        "raceNumber": 12,
+        "trackName": "Ruidoso Downs",
+        "eventType": "Racing-Thoroughbred",
+        "startTime": "2023-07-30T00:20:00Z",
+        "state": "NM",
+        "country": "USA",
+        "status": "Open",
+        "isFuture": false,
+        "class": "MAIDEN SPECIAL WEIGHT",
+        "customerTags": [
+            "vip"
+        ],
+        "products": [
+            {
+                "name": "Win",
+                "code": "FWIN",
+                "limits": {
+                    "maxStake": 500,
+                    "maxWin": 50000,
+                    "maxPool": null
+                },
+                "disable": false,
+                "source": "BetGenius",
+                "backupSource": null,
+                "order": 1
+            },
+            {
+                "name": "Custom Product",
+                "code": "CUSTOM1",
+                "limits": {
+                    "maxStake": 100,
+                    "maxWin": 1000,
+                    "maxPool": null
+                },
+                "disable": false,
+                "source": "Manual",
+                "backupSource": null,
+                "order": 2
+            }
+        ]
+    }
+]
