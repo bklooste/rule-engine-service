@@ -13,6 +13,7 @@ using Templates.Api;
 using Templates.Data;
 
 [assembly: InternalsVisibleTo("RuleEngine.Tests")]
+[assembly: InternalsVisibleTo("RuleEngine.Benchmarks")]
 
 // Container HEALTHCHECK: the chiselled runtime image has no shell or curl, so the app probes itself.
 if (args.Contains("--healthcheck"))

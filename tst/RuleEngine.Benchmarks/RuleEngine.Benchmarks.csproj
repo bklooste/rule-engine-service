@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Not a test project: no test SDK and no xunit, so dotnet test on the slnx skips it.
+	     Run with dotnet run, Release config, see docs/PERFORMANCE.md. -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>false</IsTestProject>
+		<PublishAot>false</PublishAot>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<RootNamespace>RuleEngine.Benchmarks</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.15.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\RuleEngine\RuleEngine.csproj" />
+	</ItemGroup>
+
+</Project>

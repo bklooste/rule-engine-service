@@ -6,6 +6,7 @@ actually changed.
 
 ## Unreleased
 
+- Added BenchmarkDotNet project `tst/RuleEngine.Benchmarks`, measured HTTP throughput, and `docs/PERFORMANCE.md` with a Performance section in the README.
 - Initial release: extracted from the `plat-templates` service of the lode platform. Same v2 HTTP API, same ETag/`If-Match`
   semantics and, at default settings, the same Redis key shape (`{ENVIRONMENT}:plat-templates:{id}-templates…`), so moving
   from `plat-templates` is a URL change only.

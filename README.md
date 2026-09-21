@@ -137,6 +137,26 @@ A string value written as `"{path}"` is replaced by that (dotted) property of th
 `{ "changedBy": "{customer.id}" }`. When two rules contribute an array under the same key, elements that
 share the same `aggregationField` value are merged into one element instead of duplicated.
 
+## Performance
+
+The engine is designed to avoid JSON conversion and per-request rule parsing: rules are compiled once per
+template version into plain condition objects (no `Expression.Compile`, so it works under NativeAOT), events are
+read straight off the parsed `JsonElement` with no POCO or dictionary deserialisation, fragments are immutable and
+shared, the merge is written to the response as a plan rather than a cloned tree, and compiled templates are held
+in a version-checked in-memory cache. We think that makes it a good fit for a low-latency rules service, but **we
+have not benchmarked other engines head to head**, and against a hand-specialised naive baseline it wins on
+allocations but not on CPU time at 100 rules. Here are our numbers and how to reproduce them.
+
+| Measurement (i7-13700KF, WSL2, .NET 10) | Result |
+|---|---|
+| In-process, 10 rules, 1 event: parse + match + merge + write | 1.5 us, 2.7 KB allocated |
+| In-process, 100 rules, 1 event | 9.1 us, 8.3 KB allocated |
+| Compile a 100-rule template (once per version) | 64 us |
+| HTTP, NativeAOT container, 10 rules, 1 event, 16 connections | about 30,000 req/s, p99 1.7 ms |
+| Container size / resident memory | 38 MB image, about 20-60 MiB |
+
+Details, methodology, caveats and commands: [docs/PERFORMANCE.md](docs/PERFORMANCE.md).
+
 ## Deployment
 
 Runs on **any Kubernetes node**; it only needs network access to Redis. Redis is an external
