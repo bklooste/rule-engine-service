@@ -4,7 +4,7 @@ Every push to `main` publishes a new patch version automatically (see `version.j
 not manually tagged), so not every version number gets its own entry here. This file tracks what
 actually changed.
 
-## Unreleased
+## 2.1.0 (2026-10-16)
 
 - History is transactional (design note `docs/design/2.1-history-groups-retention.md`, L1): every write commits
   the document, its version counter, its snapshot, the version index and a new per-version metadata hash
