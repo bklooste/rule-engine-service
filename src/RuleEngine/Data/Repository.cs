@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 using StackExchange.Redis;
@@ -9,6 +11,10 @@ using StackExchange.Redis.KeyspaceIsolation;
 using Templates.Data;
 
 namespace Templates;
+
+// The current document (null when there is none) and the version counter, read together. The counter
+// survives a delete, so Version can be non-zero with no Document; 0 means the id was never written.
+internal readonly record struct StoredTemplate(Template? Document, long Version);
 
 internal class Repository
 {
@@ -22,97 +28,112 @@ internal class Repository
 
     public Repository(ConnectionMultiplexer connectionMultiplexer, IConfiguration config, ILoggerFactory logFact,
         IOptions<TemplateHistoryOptions> historyOptions, IOptions<TemplatesOptions> templatesOptions)
+        : this(Prefixed(connectionMultiplexer, config, templatesOptions.Value), historyOptions.Value,
+            templatesOptions.Value.TenantKeyFormat, logFact.CreateLogger<Repository>())
+    {
+    }
+
+    // Design 2.1, "Tests, per step": a test passes its own database factory so it can wrap the database
+    // and see every command the repository sends.
+    internal Repository(Func<IDatabase> dbFunc, TemplateHistoryOptions historyOptions, string tenantKeyFormat, ILogger<Repository>? logger = null)
+    {
+        this.dbFunc = dbFunc;
+        this.historyOptions = historyOptions;
+        this.tenantKeyFormat = tenantKeyFormat;
+        this.logger = logger ?? NullLogger<Repository>.Instance;
+        this.context = AppJsonSerializerContext.GlobalDefault;
+    }
+
+    private static Func<IDatabase> Prefixed(ConnectionMultiplexer connectionMultiplexer, IConfiguration config, TemplatesOptions options)
     {
         var environment = config["ENVIRONMENT"] ?? "local";
-        var configured = templatesOptions.Value.KeyPrefix;
-        var prefix = string.IsNullOrEmpty(configured) ? $"{environment}:plat-templates:" : configured;
-        this.tenantKeyFormat = templatesOptions.Value.TenantKeyFormat;
-        this.logger = logFact.CreateLogger<Repository>();
-        this.dbFunc = () => connectionMultiplexer.GetDatabase().WithKeyPrefix(prefix);
-        this.context = AppJsonSerializerContext.GlobalDefault;
-        this.historyOptions = historyOptions.Value;
+        var prefix = string.IsNullOrEmpty(options.KeyPrefix) ? $"{environment}:plat-templates:" : options.KeyPrefix;
+        return () => connectionMultiplexer.GetDatabase().WithKeyPrefix(prefix);
     }
 
     internal static ConnectionMultiplexer CreateClient(ConfigurationManager config)
     {
-        // 
         return ConnectionMultiplexer.Connect(config[RedisConnectionString] ?? throw new InvalidOperationException("No Redis connection string found"));
     }
 
-    // Bumped in the same transaction as the write below so a reader's version check (DynamicRulesEngine,
-    // via HybridCache) can never see a version ahead of the template content it points at.
-    internal async Task<long> SetAsync(Template template, string brand)
+    // Design 2.1, D1: the one write primitive. Every write path reads the stored document and its version,
+    // decides, and commits here conditional on that version. Because the commit only lands when nothing
+    // moved the counter since the read, the new version is exactly observedVersion + 1, so its snapshot
+    // key is known before MULTI and the document, the counter, the snapshot, the version index, the
+    // version metadata and the group index entries all go in ONE transaction: there is no point between
+    // two writes at which a crash leaves a committed version without its history.
+    //
+    // Returns null when the version moved since it was read; the caller re-reads and retries.
+    internal async Task<long?> CommitAsync(string templateId, Template next, long observedVersion, IReadOnlyCollection<string> changedGroups)
     {
-        template.UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        var document = next with { UpdatedAt = now };
+        var version = observedVersion + 1;
+        var json = JsonSerializer.Serialize(document, context.Template);
+        var meta = JsonSerializer.Serialize(new VersionMeta(now, document.ChangedBy, [.. changedGroups]), context.VersionMeta);
 
         var db = this.dbFunc();
-        var json = JsonSerializer.Serialize(template, context.Template);
-
         var transaction = db.CreateTransaction();
-        var setTask = transaction.StringSetAsync(GetKey(brand), json);
-        var versionTask = transaction.StringIncrementAsync(GetVersionKey(brand));
+        // A deleted document keeps (and bumps) its counter, so observedVersion 0 can only mean "never
+        // written", and then the counter must still not exist.
+        transaction.AddCondition(observedVersion <= 0
+            ? Condition.KeyNotExists(GetVersionKey(templateId))
+            : Condition.StringEqual(GetVersionKey(templateId), observedVersion));
+
+        var queued = new List<Task>(7 + changedGroups.Count);
+        queued.Add(transaction.StringSetAsync(GetKey(templateId), json));
+        var versionTask = transaction.StringIncrementAsync(GetVersionKey(templateId));
+        queued.Add(versionTask);
         // P-14 (A11): the id index the v2 list endpoint reads. A SET maintained on write beats SCANning
-        // a Redis instance several environments share - no cross-env key walk, no pattern that has to
-        // exclude the ":version"/":versions"/":v{n}" siblings.
-        var indexTask = transaction.SetAddAsync(IndexKey, brand);
-        var committed = await transaction.ExecuteAsync();
-        if (!committed)
-            throw new InvalidDataException("could not create");
+        // a Redis instance several environments share.
+        queued.Add(transaction.SetAddAsync(IndexKey, templateId));
+        queued.Add(transaction.StringSetAsync(GetVersionedKey(templateId, version), json));
+        queued.Add(transaction.SortedSetAddAsync(GetVersionsIndexKey(templateId), version, ToUnixSeconds(now)));
+        queued.Add(transaction.HashSetAsync(GetMetaKey(templateId), version, meta));
+        foreach (var group in changedGroups)
+            queued.Add(transaction.SortedSetAddAsync(GetGroupIndexKey(templateId), GroupIndexMember(group, version), 0));
 
-        // Post-Execute: StackExchange.Redis only resolves queued command tasks once the transaction commits.
-        await Task.WhenAll(setTask, versionTask, indexTask);
-        var newVersion = versionTask.Result;
-
-        // History (P-13): the current pointer above is what GetDynamicAsync reads; this persists an
-        // immutable per-version snapshot on the side so it never gets lost when a later PUT overwrites
-        // the current key. Deliberately a second round trip (not part of the transaction above) - the
-        // current-pointer/version-counter atomicity is what readers depend on, this is best-effort history.
-        await SaveVersionSnapshotAsync(db, brand, newVersion, json, template.UpdatedAt);
-        return newVersion;
-    }
-
-    // P-14 (A8): the If-Match half of the optimistic-concurrency pair. The version-key compare rides in
-    // the transaction itself, so a writer that lost the race never overwrites - unlike a read-compare-write
-    // in the API, which has a window between the two.
-    internal async Task<long?> SetIfVersionAsync(Template template, string brand, long expectedVersion)
-    {
-        template.UpdatedAt = DateTime.UtcNow;
-
-        var db = this.dbFunc();
-        var json = JsonSerializer.Serialize(template, context.Template);
-
-        var transaction = db.CreateTransaction();
-        transaction.AddCondition(expectedVersion <= 0
-            ? Condition.KeyNotExists(GetVersionKey(brand))
-            : Condition.StringEqual(GetVersionKey(brand), expectedVersion));
-        var setTask = transaction.StringSetAsync(GetKey(brand), json);
-        var versionTask = transaction.StringIncrementAsync(GetVersionKey(brand));
-        var indexTask = transaction.SetAddAsync(IndexKey, brand);
         if (!await transaction.ExecuteAsync())
             return null;
 
-        await Task.WhenAll(setTask, versionTask, indexTask);
-        var newVersion = versionTask.Result;
-        await SaveVersionSnapshotAsync(db, brand, newVersion, json, template.UpdatedAt);
-        return newVersion;
+        // Post-Execute: StackExchange.Redis only resolves queued command tasks once the transaction commits.
+        await Task.WhenAll(queued);
+        if (versionTask.Result != version)
+            throw new InvalidDataException($"CRITICAL commit of {templateId} expected version {version} but the counter is {versionTask.Result}");
+
+        // Pruning only ever removes history, so it runs after the commit, in its own transaction: a prune
+        // that fails or never runs leaves more history, never less (D1).
+        try
+        {
+            await PruneAsync(db, templateId, now);
+        }
+        catch (Exception ex) when (ex is RedisException or TimeoutException)
+        {
+            logger.LogWarning(ex, "pruning the history of {TemplateId} failed; it is retried on the next write", templateId);
+        }
+        return version;
+    }
+
+    internal async Task<StoredTemplate> ReadAsync(string templateId)
+    {
+        var db = this.dbFunc();
+        var batch = db.CreateBatch();
+        var documentTask = batch.StringGetLeaseAsync(GetKey(templateId));
+        var versionTask = batch.StringGetAsync(GetVersionKey(templateId));
+        batch.Execute();
+        using var lease = await documentTask;
+        var versionValue = await versionTask;
+        var version = versionValue.HasValue ? (long)versionValue : 0;
+        var template = lease == null ? null : JsonSerializer.Deserialize(lease.Span, context.Template);
+        return new StoredTemplate(template, version);
     }
 
     // The current document and the version it is at, read together so a v2 response's ETag and body
     // always describe the same write.
     internal async Task<(Template Template, long Version)?> GetWithVersionAsync(string templateName)
     {
-        var db = this.dbFunc();
-        var batch = db.CreateBatch();
-        var documentTask = batch.StringGetLeaseAsync(GetKey(templateName));
-        var versionTask = batch.StringGetAsync(GetVersionKey(templateName));
-        batch.Execute();
-        var lease = await documentTask;
-        var versionValue = await versionTask;
-        if (lease == null) return null;
-
-        var template = JsonSerializer.Deserialize(lease!.Span, context.Template);
-        if (template == null) return null;
-        return (template, versionValue.HasValue ? (long)versionValue : 0);
+        var stored = await ReadAsync(templateName);
+        return stored.Document == null ? null : (stored.Document, stored.Version);
     }
 
     // P-14 (A11): every template id this service has written. Deletes take theirs back out.
@@ -128,24 +149,35 @@ internal class Repository
     // A11: removes the current document, its history and its index entry. The version counter is kept and
     // bumped instead of deleted, so every pod's cached copy misses on its next version check and a template
     // recreated under the same id can never collide with a stale cache entry at the same number.
+    //
+    // Conditional on the counter it read, like a commit: a write landing between the read of the version
+    // list and the delete would otherwise leave its snapshot behind with nothing pointing at it.
     internal async Task<bool> DeleteAsync(string templateName)
     {
         var db = this.dbFunc();
-        var versions = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(templateName));
-        var versionKeys = versions.Select(v => (RedisKey)GetVersionedKey(templateName, (long)v)).ToArray();
+        for (var attempt = 0; attempt < DeleteAttempts; attempt++)
+        {
+            var counter = await db.StringGetAsync(GetVersionKey(templateName));
+            var versions = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(templateName));
+            var versionKeys = versions.Select(v => (RedisKey)GetVersionedKey(templateName, (long)v)).ToArray();
 
-        var transaction = db.CreateTransaction();
-        var deleted = transaction.KeyDeleteAsync(GetKey(templateName));
-        _ = transaction.KeyDeleteAsync(GetVersionsIndexKey(templateName));
-        if (versionKeys.Length > 0)
-            _ = transaction.KeyDeleteAsync(versionKeys);
-        _ = transaction.StringIncrementAsync(GetVersionKey(templateName));
-        _ = transaction.SetRemoveAsync(IndexKey, templateName);
-        if (!await transaction.ExecuteAsync())
-            return false;
-
-        return await deleted;
+            var transaction = db.CreateTransaction();
+            transaction.AddCondition(counter.HasValue
+                ? Condition.StringEqual(GetVersionKey(templateName), counter)
+                : Condition.KeyNotExists(GetVersionKey(templateName)));
+            var deleted = transaction.KeyDeleteAsync(GetKey(templateName));
+            _ = transaction.KeyDeleteAsync([GetVersionsIndexKey(templateName), GetMetaKey(templateName), GetGroupIndexKey(templateName)]);
+            if (versionKeys.Length > 0)
+                _ = transaction.KeyDeleteAsync(versionKeys);
+            _ = transaction.StringIncrementAsync(GetVersionKey(templateName));
+            _ = transaction.SetRemoveAsync(IndexKey, templateName);
+            if (await transaction.ExecuteAsync())
+                return await deleted;
+        }
+        throw new InvalidDataException($"{templateName} changed on every one of {DeleteAttempts} delete attempts");
     }
+
+    private const int DeleteAttempts = 8;
 
     internal async Task<Template?> GetDynamicAsync(string templateName)
     {
@@ -176,71 +208,88 @@ internal class Repository
         return JsonSerializer.Deserialize(lease!.Span, context.Template);
     }
 
-    // Every retained version, most recent first.
+    // Every retained version, most recent first. The summaries come from K:vmeta; a version written
+    // before 2.1 has no field there, and only those are read from their snapshot.
     internal async Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateName)
     {
         var db = this.dbFunc();
-        var members = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(templateName), order: Order.Descending);
+        var members = await db.SortedSetRangeByRankAsync(GetVersionsIndexKey(templateName));
         if (members.Length == 0) return [];
 
-        var versions = members.Select(m => (long)m).ToArray();
-        var keys = versions.Select(v => (RedisKey)GetVersionedKey(templateName, v)).ToArray();
-        var docs = await db.StringGetAsync(keys);
+        var versions = members.Select(m => (long)m).OrderDescending().ToArray();
+        var metas = await db.HashGetAsync(GetMetaKey(templateName), [.. versions.Select(v => (RedisValue)v)]);
 
-        var result = new List<TemplateVersionSummary>(versions.Length);
+        var summaries = new TemplateVersionSummary?[versions.Length];
+        var legacy = new List<int>();
         for (var i = 0; i < versions.Length; i++)
         {
-            if (!docs[i].HasValue) continue; // pruned between the ZRANGE and the MGET
-            var doc = JsonSerializer.Deserialize(((byte[])docs[i]!).AsSpan(), context.Template);
-            if (doc != null)
-                result.Add(new TemplateVersionSummary(versions[i], doc.UpdatedAt, doc.ChangedBy));
+            var meta = metas[i].HasValue ? JsonSerializer.Deserialize(((byte[])metas[i]!).AsSpan(), context.VersionMeta) : null;
+            if (meta == null)
+                legacy.Add(i);
+            else
+                summaries[i] = new TemplateVersionSummary(versions[i], meta.UpdatedAt, meta.ChangedBy);
         }
-        return result;
+
+        if (legacy.Count > 0)
+        {
+            var docs = await db.StringGetAsync([.. legacy.Select(i => (RedisKey)GetVersionedKey(templateName, versions[i]))]);
+            for (var j = 0; j < legacy.Count; j++)
+            {
+                if (!docs[j].HasValue) continue; // pruned between the ZRANGE and the MGET
+                var doc = JsonSerializer.Deserialize(((byte[])docs[j]!).AsSpan(), context.Template);
+                if (doc != null)
+                    summaries[legacy[j]] = new TemplateVersionSummary(versions[legacy[j]], doc.UpdatedAt, doc.ChangedBy);
+            }
+        }
+
+        return [.. summaries.OfType<TemplateVersionSummary>()];
     }
 
-    // Rollback is a new write, not a rewind (D-14: versions are immutable, linear history). Restores
-    // the target version's content as a brand new current version and returns the new version number.
-    internal async Task<long?> RollbackAsync(string templateName, long version)
+    // Prune-on-write: every write already touches the document, so versions that fall out of the window
+    // are deleted here rather than by a background job. Each pruned version takes its snapshot, its
+    // K:versions member, its K:vmeta field and its K:gidx members with it in one transaction, so the
+    // indexes and the snapshots never disagree.
+    private async Task PruneAsync(IDatabase db, string templateId, DateTime now)
     {
-        var old = await GetVersionDocumentAsync(templateName, version);
-        if (old == null) return null;
-        return await SetAsync(old, templateName);
-    }
-
-    private async Task SaveVersionSnapshotAsync(IDatabase db, string brand, long version, string json, DateTime updatedAt)
-    {
-        var score = new DateTimeOffset(DateTime.SpecifyKind(updatedAt, DateTimeKind.Utc)).ToUnixTimeSeconds();
-
-        var transaction = db.CreateTransaction();
-        var setTask = transaction.StringSetAsync(GetVersionedKey(brand, version), json);
-        var indexTask = transaction.SortedSetAddAsync(GetVersionsIndexKey(brand), version.ToString(), score);
-        var committed = await transaction.ExecuteAsync();
-        if (!committed)
-            throw new InvalidDataException("could not save version history");
-        await Task.WhenAll(setTask, indexTask);
-
-        await PruneOldVersionsAsync(db, brand, score);
-    }
-
-    // Prune-on-write: simpler and correct enough for retention that's measured in days, so a background
-    // job would be over-engineering - every PUT/rollback already touches this key, and stale versions
-    // that fall out of the window are deleted here rather than left to expire on their own.
-    private async Task PruneOldVersionsAsync(IDatabase db, string brand, long nowUnixSeconds)
-    {
-        var cutoff = nowUnixSeconds - (long)historyOptions.Retention.TotalSeconds;
-        var expired = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(brand), double.NegativeInfinity, cutoff);
+        var cutoff = ToUnixSeconds(now) - (long)historyOptions.Retention.TotalSeconds;
+        var expired = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(templateId), double.NegativeInfinity, cutoff);
         if (expired.Length == 0) return;
 
-        var expiredKeys = expired.Select(v => (RedisKey)GetVersionedKey(brand, (long)v)).ToArray();
+        var versions = expired.Select(v => (long)v).ToArray();
+        var metas = await db.HashGetAsync(GetMetaKey(templateId), expired);
+        var groupMembers = new List<RedisValue>();
+        for (var i = 0; i < versions.Length; i++)
+        {
+            if (!metas[i].HasValue) continue;
+            var meta = JsonSerializer.Deserialize(((byte[])metas[i]!).AsSpan(), context.VersionMeta);
+            foreach (var group in meta?.Groups ?? [])
+                groupMembers.Add(GroupIndexMember(group, versions[i]));
+        }
+
         var transaction = db.CreateTransaction();
-        _ = transaction.KeyDeleteAsync(expiredKeys);
-        _ = transaction.SortedSetRemoveAsync(GetVersionsIndexKey(brand), expired);
+        _ = transaction.KeyDeleteAsync([.. versions.Select(v => (RedisKey)GetVersionedKey(templateId, v))]);
+        _ = transaction.SortedSetRemoveAsync(GetVersionsIndexKey(templateId), expired);
+        _ = transaction.HashDeleteAsync(GetMetaKey(templateId), expired);
+        if (groupMembers.Count > 0)
+            _ = transaction.SortedSetRemoveAsync(GetGroupIndexKey(templateId), [.. groupMembers]);
         await transaction.ExecuteAsync();
     }
 
-    private string GetKey(string brand) => tenantKeyFormat.Replace("{tenant}", brand);
-    private string GetVersionKey(string brand) => GetKey(brand) + ":version";
-    private string GetVersionedKey(string brand, long version) => $"{GetKey(brand)}:v{version}";
-    private string GetVersionsIndexKey(string brand) => GetKey(brand) + ":versions";
-    private const string IndexKey = "templates:index";
+    private static long ToUnixSeconds(DateTime utc) =>
+        new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)).ToUnixTimeSeconds();
+
+    // D3: "<group>\0<version, 19 digits>". \0 sorts below every byte a validated group name can hold, so
+    // one group's members form one lexical range, and the padding makes lexical order version order.
+    internal static string GroupIndexMember(string group, long version) =>
+        group + "\0" + version.ToString("D19", CultureInfo.InvariantCulture);
+
+    // The keys, relative to the prefix, so a test can inspect them through the same database.
+    internal IDatabase Database => dbFunc();
+    internal string GetKey(string brand) => tenantKeyFormat.Replace("{tenant}", brand);
+    internal string GetVersionKey(string brand) => GetKey(brand) + ":version";
+    internal string GetVersionedKey(string brand, long version) => $"{GetKey(brand)}:v{version}";
+    internal string GetVersionsIndexKey(string brand) => GetKey(brand) + ":versions";
+    internal string GetMetaKey(string brand) => GetKey(brand) + ":vmeta";
+    internal string GetGroupIndexKey(string brand) => GetKey(brand) + ":gidx";
+    internal const string IndexKey = "templates:index";
 }

@@ -29,6 +29,9 @@ public abstract class ServiceTestFixture(ServiceTestOptions options) : IAsyncLif
 
     public TestClients Clients { get; private set; } = null!;
 
+    /// <summary>The in-process service's container, for tests that reach below HTTP (repository, clock, keys).</summary>
+    public IServiceProvider Services => factory?.Services ?? throw new InvalidOperationException("the fixture is not initialized");
+
     public async ValueTask InitializeAsync()
     {
         var connection = Environment.GetEnvironmentVariable("RULE_ENGINE_TEST_REDIS");

@@ -40,6 +40,8 @@ namespace Templates;
 [JsonSerializable(typeof(ExplainCondition[]))]
 [JsonSerializable(typeof(ExplainToken[]))]
 [JsonSerializable(typeof(WriteAck))]
+// Design 2.1: version metadata (K:vmeta).
+[JsonSerializable(typeof(VersionMeta))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
     internal static AppJsonSerializerContext GlobalDefault = new(new(JsonSerializerDefaults.Web));

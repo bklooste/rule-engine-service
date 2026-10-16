@@ -99,7 +99,8 @@ All routes are under `/v2`. The full OpenAPI document is served at `/openapi/v1.
 
 A document's `ETag` is its version. Send it back as `If-Match` and a write against a version that has
 moved on is refused with `412 Precondition Failed` instead of silently winning. A write with no
-`If-Match` always succeeds (bulk import).
+`If-Match` (bulk import) is last-writer-wins: if another write lands between its read and its commit it
+is retried, and only after 4 such races in a row does it return `409 Conflict`.
 
 ```bash
 curl -si localhost:8080/v2/templates/acme | grep -i etag          # ETag: "1"
@@ -176,6 +177,11 @@ endpoint, never something the service ships or pins a node for.
 ```bash
 kubectl apply -f deploy/k8s/deployment.yaml
 ```
+
+**Redis requirements.** Each write commits the document, its version counter and its history snapshot in
+one `MULTI`/`EXEC` that spans several keys, so Redis must be standalone (or a proxy that allows multi-key
+transactions), not Redis Cluster. History is durable only if Redis never evicts it: run with
+`maxmemory-policy noeviction` (or a `volatile-*` policy; history keys carry no TTL), never `allkeys-*`.
 
 The manifest deliberately has no `nodeSelector`, `affinity` or tolerations. Pin an explicit image
 version (`:2.0`), not `:latest`, in production. Run several replicas freely: a template `PUT` is

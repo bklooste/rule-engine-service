@@ -22,9 +22,10 @@ internal sealed record WriteResult(WriteOutcome Outcome, long Version = 0, strin
 // was deleted with the rest of v1 in P-20; this is the only serving logic left.
 internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options)
 {
-    // How many times a rule-level write retries when an unrelated concurrent write moved the document
-    // version between its read and its conditional write. D-15: a rule edit must only conflict with an
-    // edit to the SAME rule, so a lost version race is retried rather than reported as a 412.
+    // How many times a write retries when an unrelated concurrent write moved the document version between
+    // its read and its conditional commit. D-15: a rule edit must only conflict with an edit to the SAME
+    // rule, so a lost version race is retried rather than reported as a 412. Design 2.1 (D1) applies the
+    // same loop to every write without an explicit document If-Match.
     private const int RuleWriteAttempts = 4;
 
     public TemplateApiOptions Options { get; } = options.Value;
@@ -70,32 +71,28 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
             return new WriteResult(WriteOutcome.Invalid, Errors: errors);
 
         // A9: changedBy is the gateway's userid header, never the request body.
-        var document = template with { ChangedBy = string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy };
+        var document = template with { ChangedBy = ChangedByOrUnknown(changedBy) };
 
-        long? version;
-        if (ifMatch == null)
+        // Design 2.1, D1: every writer reads, decides and commits conditional on the version it read. With
+        // an explicit If-Match the caller already named that version, so a lost race is the caller's 412;
+        // without one (or with "*") a lost race is retried like a rule write, and only reported as a 409
+        // after RuleWriteAttempts races in a row.
+        long? expected = null;
+        if (ifMatch != null && ifMatch != "*")
         {
-            version = await repository.SetAsync(document, templateId);
-        }
-        else if (ifMatch == "*")
-        {
-            var current = await repository.GetWithVersionAsync(templateId);
-            if (current == null)
+            if (!long.TryParse(ifMatch, out var parsed))
                 return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-            version = await repository.SetIfVersionAsync(document, templateId, current.Value.Version);
+            expected = parsed;
         }
-        else
+
+        return await CommitLoopAsync(templateId, stored =>
         {
-            if (!long.TryParse(ifMatch, out var expected))
-                return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-            version = await repository.SetIfVersionAsync(document, templateId, expected);
-        }
-
-        if (version == null)
-            return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-
-        await engine.InvalidateAsync(templateId);
-        return new WriteResult(WriteOutcome.Ok, version.Value, DocumentETag(version.Value));
+            if (ifMatch == "*" && stored.Document == null)
+                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+            if (expected != null && stored.Version != expected)
+                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+            return new Decision(document, v => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v)), RetryOnRace: expected == null);
+        });
     }
 
     internal async Task<WriteResult> DeleteAsync(string templateId, string? ifMatch)
@@ -112,14 +109,17 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return deleted ? new WriteResult(WriteOutcome.Ok) : WriteResult.Failed(WriteOutcome.NotFound);
     }
 
-    internal async Task<WriteResult> RollbackAsync(string templateId, long version)
+    // Rollback is a new write, not a rewind (D-14: versions are immutable, linear history). The new version
+    // records the caller of the rollback as its changedBy, not the author of the version it restores.
+    internal async Task<WriteResult> RollbackAsync(string templateId, long version, string? changedBy)
     {
-        var newVersion = await repository.RollbackAsync(templateId, version);
-        if (newVersion == null)
+        var old = await repository.GetVersionDocumentAsync(templateId, version);
+        if (old == null)
             return WriteResult.Failed(WriteOutcome.NotFound);
 
-        await engine.InvalidateAsync(templateId);
-        return new WriteResult(WriteOutcome.Ok, newVersion.Value, DocumentETag(newVersion.Value));
+        var restored = old with { ChangedBy = ChangedByOrUnknown(changedBy) };
+        return await CommitLoopAsync(templateId, _ =>
+            new Decision(restored, v => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v))));
     }
 
     internal async Task<(DynamicTemplate Rule, string ETag)?> GetRuleAsync(string templateId, string ruleName)
@@ -166,54 +166,82 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
             return (rules, null);
         });
 
-    private async Task<WriteResult> MutateRulesAsync(
+    private Task<WriteResult> MutateRulesAsync(
         string templateId,
         string ruleName,
         string? ifMatch,
         string? changedBy,
         Func<List<DynamicTemplate>, (List<DynamicTemplate>? Rules, WriteResult? Failure)> mutate)
     {
-        for (var attempt = 0; attempt < RuleWriteAttempts; attempt++)
+        return CommitLoopAsync(templateId, stored =>
         {
-            var loaded = await repository.GetWithVersionAsync(templateId);
-            if (loaded == null)
-                return WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'");
+            if (stored.Document == null)
+                return Decision.Fail(WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'"));
 
-            var (document, version) = loaded.Value;
+            var document = stored.Document;
             var existing = document.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
             if (ifMatch != null && ifMatch != "*")
             {
                 if (existing == null || RuleETagValue(existing) != ifMatch)
-                    return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                    return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
             else if (ifMatch == "*" && existing == null)
             {
-                return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
 
             var now = DateTime.UtcNow;
             var rules = document.Templates.Where(r => !r.IsExpired(now)).ToList();
             var (mutated, failure) = mutate(rules);
             if (failure != null)
-                return failure;
+                return Decision.Fail(failure);
 
             var updated = document with
             {
                 Templates = [.. mutated!],
-                ChangedBy = string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy,
+                ChangedBy = ChangedByOrUnknown(changedBy),
             };
+            var written = updated.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
+            return new Decision(updated, v => new WriteResult(WriteOutcome.Ok, v, written == null ? null : RuleETag(written)));
+        });
+    }
 
-            var newVersion = await repository.SetIfVersionAsync(updated, templateId, version);
+    // What a writer decided after reading the stored document: commit Next (and answer with Done once it
+    // has a version), or stop with Stop and write nothing.
+    private sealed record Decision(Template? Next, Func<long, WriteResult>? Done, bool RetryOnRace = true)
+    {
+        public WriteResult? Stop { get; private init; }
+
+        public static Decision Fail(WriteResult result) => new(null, null) { Stop = result };
+    }
+
+    // D1: read, decide, conditional commit; a commit that lost a version race to another writer re-reads
+    // and decides again (D-15), so an edit only ever conflicts with what its own decision depends on.
+    private async Task<WriteResult> CommitLoopAsync(string templateId, Func<StoredTemplate, Decision> decide)
+    {
+        for (var attempt = 0; attempt < RuleWriteAttempts; attempt++)
+        {
+            var stored = await repository.ReadAsync(templateId);
+            var decision = decide(stored);
+            if (decision.Stop != null)
+                return decision.Stop;
+
+            var newVersion = await repository.CommitAsync(templateId, decision.Next!, stored.Version, []);
             if (newVersion == null)
-                continue; // another writer landed in between; re-read and reapply (see D-15)
+            {
+                if (!decision.RetryOnRace)
+                    return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                continue; // another writer landed in between; re-read and decide again
+            }
 
             await engine.InvalidateAsync(templateId);
-            var stored = updated.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
-            return new WriteResult(WriteOutcome.Ok, newVersion.Value, stored == null ? null : RuleETag(stored));
+            return decision.Done!(newVersion.Value);
         }
 
         return WriteResult.Failed(WriteOutcome.Conflict);
     }
+
+    private static string ChangedByOrUnknown(string? changedBy) => string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy;
 
     private static Template Prune(Template template)
     {

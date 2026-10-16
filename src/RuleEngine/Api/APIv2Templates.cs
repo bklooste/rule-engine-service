@@ -164,9 +164,13 @@ public static class APIv2Templates
             V2Logic logic,
             [FromRoute] string templateId,
             [FromRoute] long version,
-            HttpResponse response) =>
+            HttpResponse response,
+            IOptions<TemplatesOptions> templatesOptions,
+            HttpRequest request) =>
         {
-            var result = await logic.RollbackAsync(templateId, version);
+            var result = await logic.RollbackAsync(templateId, version, ChangedBy(request, templatesOptions));
+            if (result.Outcome == WriteOutcome.Conflict)
+                return Respond(result, response, Results.NoContent, templateId);
             if (result.Outcome != WriteOutcome.Ok)
                 return Results.Problem(detail: $"no version {version} of template '{templateId}'", statusCode: (int)HttpStatusCode.NotFound, title: "No such version");
 
