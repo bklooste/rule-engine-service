@@ -95,9 +95,15 @@ All routes are under `/v2`. The full OpenAPI document is served at `/openapi/v1.
 | PUT | `/v2/templates/{id}` | Create or replace. Every rule is compiled first; one that cannot compile is rejected `400` by name. Honours `If-Match`. Returns `{"version":n}`. |
 | DELETE | `/v2/templates/{id}` | Delete the template and its history. |
 | GET / PUT / DELETE | `/v2/templates/{id}/rules/{ruleName}` | Read, upsert or delete a single rule. PUT/DELETE honour `If-Match`. |
-| GET | `/v2/templates/{id}/versions` | Version history (newest first): version, `updatedAt`, `changedBy`. |
+| GET | `/v2/templates/{id}/versions` | Version history (newest first): version, `updatedAt`, `changedBy`, `groups` (the groups that version changed; omitted for versions written before 2.1). `?limit=` (default 100, max 1000), `?before={n}`. |
 | GET | `/v2/templates/{id}/versions/{n}` | The document as it was at version `n`. |
-| POST | `/v2/templates/{id}/rollback/{n}` | Restore version `n` **as a new version** (history is never rewritten). |
+| POST | `/v2/templates/{id}/rollback/{n}` | Restore version `n` **as a new version** (history is never rewritten). The new version's `changedBy` is the caller. |
+| GET | `/v2/templates/{id}/groups/{group}` | `{"rules":[…]}`: the rules whose `group` is `{group}`, in document order. `ETag` is the group ETag. `404` if the group has no rules. |
+| PUT | `/v2/templates/{id}/groups/{group}` | Replace every rule of the group in one write. Body `{"aggregationField"?: "…", "rules":[…]}`. Creates the document if it is missing (`aggregationField` then required). Honours a group `If-Match`. Returns `{"version":n}` and the new group `ETag`. |
+| DELETE | `/v2/templates/{id}/groups/{group}` | Remove every rule of the group. `204`; `404` if it has none. |
+| GET | `/v2/templates/{id}/groups/{group}/versions` | The versions that changed the group, newest first. `?limit=`, `?before={n}`. |
+| GET | `/v2/templates/{id}/groups/{group}/versions/{n}` | `{"rules":[…]}`: the group as it stood at version `n`. |
+| POST | `/v2/templates/{id}/groups/{group}/rollback/{n}` | Restore the group as it stood at version `n`, as a new version, leaving every other rule as it is now. Returns `{"version":m,"rules":[…]}`. |
 | POST | `/v2/templates/{id}/evaluate` | Body: one event or an array of events. Returns the merged fragment(s). `X-Template-Version` header. |
 | POST | `/v2/templates/evaluate` | Body `{"templateIds":[…],"events":[…]}` — several templates over the same events. Returns `{"versions":{id:n},"results":[{id:fragment}…]}`. |
 | POST | `/v2/templates/{id}/explain` | Like evaluate for exactly one event, but reports which rules matched and why the others did not. |
@@ -134,6 +140,23 @@ TemplateHistory__Rules__0__MinVersions=5
 
 A snapshot is the whole document and lives in Redis memory, so keep-forever (`RetentionDays=0`) grows by one
 document per write: size it before using it on large, frequently written documents.
+
+### Groups
+
+A rule's optional `group` lets several clients each own a slice of one document. The group routes read,
+replace, delete and roll back all of a group's rules as one versioned write, and leave every other rule
+alone, so a group rollback never reverts somebody else's group. A group has no version counter of its own:
+"version `n` of a group" is document version `n`, and a group's history is the list of document versions
+that changed its rules, whichever route made the change.
+
+The **group ETag** is a hash of the group's stored rules, not the document version, so two clients editing
+different groups never conflict: changes to other groups move the document version and are retried
+internally. Send it back as `If-Match` and a write against a group that has changed since is refused with
+`412`; `If-Match: *` requires the group to exist. A group `PUT` that asks for exactly the rules the group
+already has adds no version (retries are idempotent). Rule names stay unique across the document: a group
+`PUT` naming a rule owned by another group is `400`, and a group rollback that would is `409`. A group's
+rules stay together at the position of its first rule; a new group is appended. Group names are 1 to 256
+characters with no control characters.
 
 ### Rules
 

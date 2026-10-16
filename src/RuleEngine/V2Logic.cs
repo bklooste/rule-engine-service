@@ -20,7 +20,7 @@ internal sealed record WriteResult(WriteOutcome Outcome, long Version = 0, strin
 
 // P-14: everything the v2 routes do, so Api/APIv2*.cs stays route wiring and status codes. v1's Logic
 // was deleted with the rest of v1 in P-20; this is the only serving logic left.
-internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider)
+internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider)
 {
     // How many times a write retries when an unrelated concurrent write moved the document version between
     // its read and its conditional commit. D-15: a rule edit must only conflict with an edit to the SAME
@@ -46,7 +46,8 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
 
     internal Task<string[]> ListAsync() => repository.ListTemplateIdsAsync();
 
-    internal Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateId) => repository.ListVersionsAsync(templateId);
+    internal Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateId, int limit, long? before) =>
+        repository.ListVersionsAsync(templateId, limit, before);
 
     internal Task<Template?> GetVersionAsync(string templateId, long version) => repository.GetVersionDocumentAsync(templateId, version);
 
@@ -67,6 +68,7 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         // A7: every rule is validated by compiling it. v1 skipped validation entirely for any id
         // containing "override" (APIValidator.IsValid), which is how uncompilable rules reached storage.
         var errors = CompiledV2Template.Validate(template);
+        errors.AddRange(GroupNameErrors(template.Templates));
         if (errors.Count > 0)
             return new WriteResult(WriteOutcome.Invalid, Errors: errors);
 
@@ -88,9 +90,9 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return await CommitLoopAsync(templateId, stored =>
         {
             if (ifMatch == "*" && stored.Document == null)
-                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             if (expected != null && stored.Version != expected)
-                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             return new Decision(document, v => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v)), RetryOnRace: expected == null);
         });
     }
@@ -144,6 +146,7 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return await MutateRulesAsync(templateId, ruleName, ifMatch, changedBy, rules =>
         {
             var errors = CompiledV2Template.Validate(new Template([named], "name"));
+            errors.AddRange(GroupNameErrors([named]));
             if (errors.Count > 0)
                 return (null, new WriteResult(WriteOutcome.Invalid, Errors: errors));
 
@@ -176,25 +179,25 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return CommitLoopAsync(templateId, stored =>
         {
             if (stored.Document == null)
-                return Decision.Fail(WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'"));
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'"));
 
             var document = stored.Document;
             var existing = document.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
             if (ifMatch != null && ifMatch != "*")
             {
                 if (existing == null || RuleETagValue(existing) != ifMatch)
-                    return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+                    return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
             else if (ifMatch == "*" && existing == null)
             {
-                return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
 
             var now = timeProvider.GetUtcNow().UtcDateTime;
             var rules = document.Templates.Where(r => !r.IsExpired(now)).ToList();
             var (mutated, failure) = mutate(rules);
             if (failure != null)
-                return Decision.Fail(failure);
+                return Decision.Stop(failure);
 
             var updated = document with
             {
@@ -207,12 +210,12 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
     }
 
     // What a writer decided after reading the stored document: commit Next (and answer with Done once it
-    // has a version), or stop with Stop and write nothing.
+    // has a version), or stop, write nothing and answer with Answer (a failure, or a no-op's success).
     private sealed record Decision(Template? Next, Func<long, WriteResult>? Done, bool RetryOnRace = true)
     {
-        public WriteResult? Stop { get; private init; }
+        public WriteResult? Answer { get; private init; }
 
-        public static Decision Fail(WriteResult result) => new(null, null) { Stop = result };
+        public static Decision Stop(WriteResult result) => new(null, null) { Answer = result };
     }
 
     // D1: read, decide, conditional commit; a commit that lost a version race to another writer re-reads
@@ -223,10 +226,13 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         {
             var stored = await repository.ReadAsync(templateId);
             var decision = decide(stored);
-            if (decision.Stop != null)
-                return decision.Stop;
+            if (decision.Answer != null)
+                return decision.Answer;
 
-            var newVersion = await repository.CommitAsync(templateId, decision.Next!, stored.Version, []);
+            // D3: every write path indexes the groups whose rules it changed, so a group's history has no
+            // holes whichever route changed it.
+            var changedGroups = ChangedGroups(stored.Document, decision.Next!);
+            var newVersion = await repository.CommitAsync(templateId, decision.Next!, stored.Version, changedGroups);
             if (newVersion == null)
             {
                 if (!decision.RetryOnRace)

@@ -26,6 +26,14 @@ actually changed.
   `<= 0` as one day); a negative value stops the service at start.
 - **Behaviour change (fix):** prune keeps the version that was in force when the retention window opened;
   2.0 deleted it on the first write after it aged out, so "roll back my last edit" could fail.
+- Group routes (L3): `GET`/`PUT`/`DELETE v2/templates/{id}/groups/{group}`, `GET …/groups/{group}/versions`,
+  `GET …/groups/{group}/versions/{n}` and `POST …/groups/{group}/rollback/{n}`. A group write replaces all of
+  the group's rules in one versioned write (creating the document if needed); its `If-Match` is a group ETag
+  (a content hash of the group's stored rules), so edits to different groups never conflict; a no-op group
+  `PUT` adds no version. Every write path records the groups it changed in a per-document group index
+  (`…:gidx`) inside the commit, so group history has no holes. Versions written before 2.1 are not indexed.
+- `GET v2/templates/{id}/versions` gains `?limit=` (default 100, max 1000), `?before={n}` and a `groups` field.
+- A rule `group` must be at most 256 characters with no control characters (`400` otherwise).
 - `Repository` and `V2Logic` take a `TimeProvider` instead of reading `DateTime.UtcNow`.
 - README: Redis must be standalone and must not evict history keys (`noeviction` or a `volatile-*` policy).
 

@@ -211,15 +211,36 @@ internal class Repository
         return JsonSerializer.Deserialize(lease!.Span, context.Template);
     }
 
-    // Every retained version, most recent first. The summaries come from K:vmeta; a version written
-    // before 2.1 has no field there, and only those are read from their snapshot.
-    internal async Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateName)
+    // Retained versions, most recent first: at most `limit`, and only those below `before` when given.
+    // The summaries come from K:vmeta; a version written before 2.1 has no field there, and only those
+    // are read from their snapshot.
+    internal async Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateName, int limit = int.MaxValue, long? before = null)
     {
         var db = this.dbFunc();
         var members = await db.SortedSetRangeByRankAsync(GetVersionsIndexKey(templateName));
+        var versions = members.Select(m => (long)m).Where(v => before == null || v < before).OrderDescending().Take(limit).ToArray();
+        return await SummariesAsync(db, templateName, versions, legacyFallback: true);
+    }
+
+    // Design 2.1, D3: the versions that changed a group, newest first, from K:gidx, without reading any
+    // snapshot. A version whose snapshot is gone (pruned by a 2.0.x pod, which leaves K:gidx alone) is
+    // skipped, so a listed version can always be fetched.
+    internal async Task<List<TemplateVersionSummary>> ListGroupVersionsAsync(string templateId, string group, int limit, long? before)
+    {
+        var db = this.dbFunc();
+        var max = before is { } b ? (RedisValue)GroupIndexMember(group, b) : (RedisValue)(group + "\u0001");
+        var members = await db.SortedSetRangeByValueAsync(GetGroupIndexKey(templateId), group + "\0", max, Exclude.Stop, Order.Descending, 0, limit);
         if (members.Length == 0) return [];
 
-        var versions = members.Select(m => (long)m).OrderDescending().ToArray();
+        var versions = members.Select(m => long.Parse(((string)m!).AsSpan(group.Length + 1), CultureInfo.InvariantCulture)).ToArray();
+        var scores = await db.SortedSetScoresAsync(GetVersionsIndexKey(templateId), [.. versions.Select(v => (RedisValue)v)]);
+        versions = [.. versions.Where((_, i) => scores[i].HasValue)];
+        return await SummariesAsync(db, templateId, versions, legacyFallback: false);
+    }
+
+    private async Task<List<TemplateVersionSummary>> SummariesAsync(IDatabase db, string templateName, long[] versions, bool legacyFallback)
+    {
+        if (versions.Length == 0) return [];
         var metas = await db.HashGetAsync(GetMetaKey(templateName), [.. versions.Select(v => (RedisValue)v)]);
 
         var summaries = new TemplateVersionSummary?[versions.Length];
@@ -230,10 +251,10 @@ internal class Repository
             if (meta == null)
                 legacy.Add(i);
             else
-                summaries[i] = new TemplateVersionSummary(versions[i], meta.UpdatedAt, meta.ChangedBy);
+                summaries[i] = new TemplateVersionSummary(versions[i], meta.UpdatedAt, meta.ChangedBy, meta.Groups);
         }
 
-        if (legacy.Count > 0)
+        if (legacyFallback && legacy.Count > 0)
         {
             var docs = await db.StringGetAsync([.. legacy.Select(i => (RedisKey)GetVersionedKey(templateName, versions[i]))]);
             for (var j = 0; j < legacy.Count; j++)
