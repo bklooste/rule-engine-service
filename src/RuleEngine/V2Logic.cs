@@ -20,11 +20,12 @@ internal sealed record WriteResult(WriteOutcome Outcome, long Version = 0, strin
 
 // P-14: everything the v2 routes do, so Api/APIv2*.cs stays route wiring and status codes. v1's Logic
 // was deleted with the rest of v1 in P-20; this is the only serving logic left.
-internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options)
+internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider, IOptions<TemplateHistoryOptions> historyOptions)
 {
-    // How many times a rule-level write retries when an unrelated concurrent write moved the document
-    // version between its read and its conditional write. D-15: a rule edit must only conflict with an
-    // edit to the SAME rule, so a lost version race is retried rather than reported as a 412.
+    // How many times a write retries when an unrelated concurrent write moved the document version between
+    // its read and its conditional commit. D-15: a rule edit must only conflict with an edit to the SAME
+    // rule, so a lost version race is retried rather than reported as a 412. Design 2.1 (D1) applies the
+    // same loop to every write without an explicit document If-Match.
     private const int RuleWriteAttempts = 4;
 
     public TemplateApiOptions Options { get; } = options.Value;
@@ -45,17 +46,18 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
 
     internal Task<string[]> ListAsync() => repository.ListTemplateIdsAsync();
 
-    internal Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateId) => repository.ListVersionsAsync(templateId);
+    internal Task<List<TemplateVersionSummary>> ListVersionsAsync(string templateId, int limit, long? before) =>
+        repository.ListVersionsAsync(templateId, limit, before);
 
     internal Task<Template?> GetVersionAsync(string templateId, long version) => repository.GetVersionDocumentAsync(templateId, version);
 
-    // D-16: expired rules are skipped on read as well as on evaluate, so an admin GET shows the document
-    // the service actually serves. They leave storage the next time something rewrites the document.
-    internal async Task<(Template Template, long Version)?> GetAsync(string templateId)
+    // D-16: ended rules are hidden on read as well as skipped on evaluate, so an admin GET shows the
+    // document the service actually serves; ?includeExpired=true (design 2.1, D6) shows every stored rule.
+    internal async Task<(Template Template, long Version)?> GetAsync(string templateId, bool includeExpired = false)
     {
         var loaded = await repository.GetWithVersionAsync(templateId);
         if (loaded == null) return null;
-        return (Prune(loaded.Value.Template), loaded.Value.Version);
+        return (includeExpired ? loaded.Value.Template : HideEnded(loaded.Value.Template, Now), loaded.Value.Version);
     }
 
     internal async Task<WriteResult> PutAsync(string templateId, Template? template, string? ifMatch, string? changedBy)
@@ -66,36 +68,35 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         // A7: every rule is validated by compiling it. v1 skipped validation entirely for any id
         // containing "override" (APIValidator.IsValid), which is how uncompilable rules reached storage.
         var errors = CompiledV2Template.Validate(template);
+        errors.AddRange(GroupNameErrors(template.Templates));
         if (errors.Count > 0)
             return new WriteResult(WriteOutcome.Invalid, Errors: errors);
 
         // A9: changedBy is the gateway's userid header, never the request body.
-        var document = template with { ChangedBy = string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy };
+        var document = template with { ChangedBy = ChangedByOrUnknown(changedBy) };
 
-        long? version;
-        if (ifMatch == null)
+        // Design 2.1, D1: every writer reads, decides and commits conditional on the version it read. With
+        // an explicit If-Match the caller already named that version, so a lost race is the caller's 412;
+        // without one (or with "*") a lost race is retried like a rule write, and only reported as a 409
+        // after RuleWriteAttempts races in a row.
+        long? expected = null;
+        if (ifMatch != null && ifMatch != "*")
         {
-            version = await repository.SetAsync(document, templateId);
-        }
-        else if (ifMatch == "*")
-        {
-            var current = await repository.GetWithVersionAsync(templateId);
-            if (current == null)
+            if (!long.TryParse(ifMatch, out var parsed))
                 return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-            version = await repository.SetIfVersionAsync(document, templateId, current.Value.Version);
+            expected = parsed;
         }
-        else
+
+        return await CommitLoopAsync(templateId, stored =>
         {
-            if (!long.TryParse(ifMatch, out var expected))
-                return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-            version = await repository.SetIfVersionAsync(document, templateId, expected);
-        }
-
-        if (version == null)
-            return WriteResult.Failed(WriteOutcome.PreconditionFailed);
-
-        await engine.InvalidateAsync(templateId);
-        return new WriteResult(WriteOutcome.Ok, version.Value, DocumentETag(version.Value));
+            if (ifMatch == "*" && stored.Document == null)
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+            if (expected != null && stored.Version != expected)
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
+            // A whole-document PUT stores its body as sent, ended rules included, as in 2.0: it is the
+            // one write path DropEnded does not apply to (design 2.1, D6: "replace" means replace).
+            return new Decision(document, (v, _) => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v)), RetryOnRace: expected == null, DropEnded: false);
+        });
     }
 
     internal async Task<WriteResult> DeleteAsync(string templateId, string? ifMatch)
@@ -112,21 +113,28 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return deleted ? new WriteResult(WriteOutcome.Ok) : WriteResult.Failed(WriteOutcome.NotFound);
     }
 
-    internal async Task<WriteResult> RollbackAsync(string templateId, long version)
+    // Rollback is a new write, not a rewind (D-14: versions are immutable, linear history). The new version
+    // records the caller of the rollback as its changedBy, not the author of the version it restores.
+    internal async Task<WriteResult> RollbackAsync(string templateId, long version, string? changedBy)
     {
-        var newVersion = await repository.RollbackAsync(templateId, version);
-        if (newVersion == null)
+        var old = await repository.GetVersionDocumentAsync(templateId, version);
+        if (old == null)
             return WriteResult.Failed(WriteOutcome.NotFound);
 
-        await engine.InvalidateAsync(templateId);
-        return new WriteResult(WriteOutcome.Ok, newVersion.Value, DocumentETag(newVersion.Value));
+        var restored = old with { ChangedBy = ChangedByOrUnknown(changedBy) };
+        return await CommitLoopAsync(templateId, _ =>
+            new Decision(restored, (v, _) => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v))));
     }
 
-    internal async Task<(DynamicTemplate Rule, string ETag)?> GetRuleAsync(string templateId, string ruleName)
+    // D6: an ended rule is hidden here too unless includeExpired, so every read route agrees. The ETag is
+    // over the stored rule either way.
+    internal async Task<(DynamicTemplate Rule, string ETag)?> GetRuleAsync(string templateId, string ruleName, bool includeExpired = false)
     {
         var loaded = await repository.GetWithVersionAsync(templateId);
         var rule = loaded?.Template.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
-        return rule == null ? null : (rule, RuleETag(rule));
+        if (rule == null || (!includeExpired && rule.IsExpired(Now)))
+            return null;
+        return (rule, RuleETag(rule));
     }
 
     // D-15: rule-level edits, matched on the EXACT name. offer-products' prefix matching (DeleteGroup /
@@ -144,6 +152,7 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
         return await MutateRulesAsync(templateId, ruleName, ifMatch, changedBy, rules =>
         {
             var errors = CompiledV2Template.Validate(new Template([named], "name"));
+            errors.AddRange(GroupNameErrors([named]));
             if (errors.Count > 0)
                 return (null, new WriteResult(WriteOutcome.Invalid, Errors: errors));
 
@@ -166,62 +175,114 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
             return (rules, null);
         });
 
-    private async Task<WriteResult> MutateRulesAsync(
+    private Task<WriteResult> MutateRulesAsync(
         string templateId,
         string ruleName,
         string? ifMatch,
         string? changedBy,
         Func<List<DynamicTemplate>, (List<DynamicTemplate>? Rules, WriteResult? Failure)> mutate)
     {
-        for (var attempt = 0; attempt < RuleWriteAttempts; attempt++)
+        return CommitLoopAsync(templateId, stored =>
         {
-            var loaded = await repository.GetWithVersionAsync(templateId);
-            if (loaded == null)
-                return WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'");
+            if (stored.Document == null)
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.NotFound, $"no template '{templateId}'"));
 
-            var (document, version) = loaded.Value;
+            var document = stored.Document;
             var existing = document.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
             if (ifMatch != null && ifMatch != "*")
             {
                 if (existing == null || RuleETagValue(existing) != ifMatch)
-                    return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                    return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
             else if (ifMatch == "*" && existing == null)
             {
-                return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
 
-            var now = DateTime.UtcNow;
-            var rules = document.Templates.Where(r => !r.IsExpired(now)).ToList();
-            var (mutated, failure) = mutate(rules);
+            // The mutation sees every stored rule, ended ones included, so a rule PUT to the name of an
+            // ended rule replaces it in place; the commit loop drops what has outlived its retention (D6).
+            var (mutated, failure) = mutate([.. document.Templates]);
             if (failure != null)
-                return failure;
+                return Decision.Stop(failure);
 
             var updated = document with
             {
                 Templates = [.. mutated!],
-                ChangedBy = string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy,
+                ChangedBy = ChangedByOrUnknown(changedBy),
             };
+            return new Decision(updated, (v, committed) =>
+            {
+                var written = committed.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
+                return new WriteResult(WriteOutcome.Ok, v, written == null ? null : RuleETag(written));
+            });
+        });
+    }
 
-            var newVersion = await repository.SetIfVersionAsync(updated, templateId, version);
+    // What a writer decided after reading the stored document: commit Next (and answer with Done once it
+    // has a version, given the document as committed), or stop, write nothing and answer with Answer (a
+    // failure, or a no-op's success).
+    private sealed record Decision(Template? Next, Func<long, Template, WriteResult>? Done, bool RetryOnRace = true, bool DropEnded = true)
+    {
+        public WriteResult? Answer { get; private init; }
+
+        public static Decision Stop(WriteResult result) => new(null, null) { Answer = result };
+    }
+
+    // D1: read, decide, conditional commit; a commit that lost a version race to another writer re-reads
+    // and decides again (D-15), so an edit only ever conflicts with what its own decision depends on.
+    private async Task<WriteResult> CommitLoopAsync(string templateId, Func<StoredTemplate, Decision> decide)
+    {
+        for (var attempt = 0; attempt < RuleWriteAttempts; attempt++)
+        {
+            var stored = await repository.ReadAsync(templateId);
+            var decision = decide(stored);
+            if (decision.Answer != null)
+                return decision.Answer;
+
+            // D6: a write drops the rules that ended longer ago than the id's
+            // ExpiredRuleRetentionDays (0 = as soon as they end, the 2.0 behaviour), and D3: indexes the
+            // groups whose rules it changed, which includes a group that lost an ended rule here.
+            var next = decision.DropEnded
+                ? DropEnded(decision.Next!, Now, historyOptions.Value.Resolve(templateId).ExpiredRuleRetentionDays)
+                : decision.Next!;
+            var changedGroups = ChangedGroups(stored.Document, next);
+            var newVersion = await repository.CommitAsync(templateId, next, stored.Version, changedGroups);
             if (newVersion == null)
-                continue; // another writer landed in between; re-read and reapply (see D-15)
+            {
+                if (!decision.RetryOnRace)
+                    return WriteResult.Failed(WriteOutcome.PreconditionFailed);
+                continue; // another writer landed in between; re-read and decide again
+            }
 
             await engine.InvalidateAsync(templateId);
-            var stored = updated.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
-            return new WriteResult(WriteOutcome.Ok, newVersion.Value, stored == null ? null : RuleETag(stored));
+            return decision.Done!(newVersion.Value, next);
         }
 
         return WriteResult.Failed(WriteOutcome.Conflict);
     }
 
-    private static Template Prune(Template template)
-    {
-        var now = DateTime.UtcNow;
-        if (!Array.Exists(template.Templates, r => r.IsExpired(now)))
-            return template;
+    private static string ChangedByOrUnknown(string? changedBy) => string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy;
 
-        return template with { Templates = [.. template.Templates.Where(r => !r.IsExpired(now))] };
+    private DateTime Now => timeProvider.GetUtcNow().UtcDateTime;
+
+    // Design 2.1, D6: V2Logic.Prune did two jobs, hiding on read and dropping on write; they are two
+    // functions with different rules now.
+    //
+    // HideEnded: what a read shows by default, a rule with expiresAt <= now hidden (it never matches).
+    internal static Template HideEnded(Template template, DateTime now) =>
+        Array.Exists(template.Templates, r => r.IsExpired(now))
+            ? template with { Templates = [.. template.Templates.Where(r => !r.IsExpired(now))] }
+            : template;
+
+    // DropEnded: what a write keeps, a rule dropped once expiresAt + retentionDays <= now. With 0 days it
+    // drops exactly what HideEnded hides; a document with a retention keeps ended rules through unrelated
+    // writes, listable with ?includeExpired=true, until the retention has passed.
+    internal static Template DropEnded(Template template, DateTime now, int retentionDays)
+    {
+        bool Gone(DynamicTemplate r) => r.ExpiresAt is { } end && end.AddDays(retentionDays) <= now;
+        return Array.Exists(template.Templates, Gone)
+            ? template with { Templates = [.. template.Templates.Where(r => !Gone(r))] }
+            : template;
     }
 
     // The document's ETag is its version: a value both sides already have, and the one the version-key

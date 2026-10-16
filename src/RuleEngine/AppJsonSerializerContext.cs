@@ -40,6 +40,11 @@ namespace Templates;
 [JsonSerializable(typeof(ExplainCondition[]))]
 [JsonSerializable(typeof(ExplainToken[]))]
 [JsonSerializable(typeof(WriteAck))]
+// Design 2.1: version metadata (K:vmeta) and the group routes (D5).
+[JsonSerializable(typeof(VersionMeta))]
+[JsonSerializable(typeof(GroupWriteRequest))]
+[JsonSerializable(typeof(GroupRules))]
+[JsonSerializable(typeof(GroupRollbackResult))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
     internal static AppJsonSerializerContext GlobalDefault = new(new(JsonSerializerDefaults.Web));

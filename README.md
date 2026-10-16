@@ -61,7 +61,14 @@ Invalid configuration fails at startup with a clear message in the container log
 | `Templates__ChangedByHeader` | string | `userid` | Request header whose value is recorded as `changedBy` on writes. See [Identity](#identity-and-security). |
 | `TemplateApi__MaxEventsPerRequest` | int | `100` | Max events in one evaluate call. |
 | `TemplateApi__MaxTemplateIdsPerRequest` | int | `10` | Max template ids in one multi-template evaluate call. |
-| `TemplateHistory__RetentionDays` | int | `90` | Days a per-version snapshot is kept before it is pruned on the next write. |
+| `TemplateHistory__RetentionDays` | int | `90` | Days a per-version snapshot is kept before it is pruned on the next write. `0` = keep every version. The version that was in force when the window opened is always kept. See [History retention](#history-retention). |
+| `TemplateHistory__MinVersions` | int | `0` | The newest this-many versions of a document are always kept, whatever their age. |
+| `TemplateHistory__ExpiredRuleRetentionDays` | int | `0` | Days a rule stays stored after its `expiresAt` before a write drops it. `0` = dropped by the first write after it ends. |
+| `TemplateHistory__Rules` | list | _(empty)_ | Ordered per-template-id overrides of the three settings above; the first rule whose pattern matches the id wins. Each entry is `TemplateHistory__Rules__{i}__…`: |
+| `TemplateHistory__Rules__0__Pattern` | string | _(required)_ | Matched against the template id, case-sensitive; `*` matches any run of characters, e.g. `promotion-*`. |
+| `TemplateHistory__Rules__0__RetentionDays` | int | _(top-level)_ | Overrides `TemplateHistory__RetentionDays` for matching ids. Unset = the top-level value. |
+| `TemplateHistory__Rules__0__MinVersions` | int | _(top-level)_ | Overrides `TemplateHistory__MinVersions`. |
+| `TemplateHistory__Rules__0__ExpiredRuleRetentionDays` | int | _(top-level)_ | Overrides `TemplateHistory__ExpiredRuleRetentionDays`. |
 | `TemplateVersionCache__Duration` | int (ms) | `5000` | How long a pod trusts its last version check before re-reading Redis. A `PUT` reaches every pod within this window. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | url | _(unset)_ | Standard OpenTelemetry. Unset = nothing exported. Also honours `OTEL_SERVICE_NAME`, `OTEL_EXPORTER_OTLP_PROTOCOL`, etc. |
 | `ASPNETCORE_HTTP_PORTS` | string | `8080` | Listening port. |
@@ -84,13 +91,19 @@ All routes are under `/v2`. The full OpenAPI document is served at `/openapi/v1.
 |---|---|---|
 | GET | `/health` | `200` when healthy (includes Redis connectivity). |
 | GET | `/v2/templates` | List template ids. |
-| GET | `/v2/templates/{id}` | The template document. Response carries `ETag: "<version>"` and `X-Template-Version`. `404` if unknown. |
-| PUT | `/v2/templates/{id}` | Create or replace. Every rule is compiled first; one that cannot compile is rejected `400` by name. Honours `If-Match`. Returns `{"version":n}`. |
+| GET | `/v2/templates/{id}` | The template document. Response carries `ETag: "<version>"` and `X-Template-Version`. `404` if unknown. Ended rules are hidden unless `?includeExpired=true`. |
+| PUT | `/v2/templates/{id}` | Create or replace the whole document, ended rules included: rules the body leaves out are gone. Every rule is compiled first; one that cannot compile is rejected `400` by name. Honours `If-Match`. Returns `{"version":n}`. |
 | DELETE | `/v2/templates/{id}` | Delete the template and its history. |
-| GET / PUT / DELETE | `/v2/templates/{id}/rules/{ruleName}` | Read, upsert or delete a single rule. PUT/DELETE honour `If-Match`. |
-| GET | `/v2/templates/{id}/versions` | Version history (newest first): version, `updatedAt`, `changedBy`. |
+| GET / PUT / DELETE | `/v2/templates/{id}/rules/{ruleName}` | Read, upsert or delete a single rule. PUT/DELETE honour `If-Match`. GET hides an ended rule (`404`) unless `?includeExpired=true`. |
+| GET | `/v2/templates/{id}/versions` | Version history (newest first): version, `updatedAt`, `changedBy`, `groups` (the groups that version changed; omitted for versions written before 2.1). `?limit=` (default 100, max 1000), `?before={n}`. |
 | GET | `/v2/templates/{id}/versions/{n}` | The document as it was at version `n`. |
-| POST | `/v2/templates/{id}/rollback/{n}` | Restore version `n` **as a new version** (history is never rewritten). |
+| POST | `/v2/templates/{id}/rollback/{n}` | Restore version `n` **as a new version** (history is never rewritten). The new version's `changedBy` is the caller. |
+| GET | `/v2/templates/{id}/groups/{group}` | `{"rules":[…]}`: the rules whose `group` is `{group}`, in document order; ended rules hidden unless `?includeExpired=true`. `ETag` is the group ETag. `404` if the group has no stored rules. |
+| PUT | `/v2/templates/{id}/groups/{group}` | Replace every rule of the group in one write. Body `{"aggregationField"?: "…", "rules":[…]}`. Creates the document if it is missing (`aggregationField` then required). Honours a group `If-Match`. Returns `{"version":n}` and the new group `ETag`. |
+| DELETE | `/v2/templates/{id}/groups/{group}` | Remove every rule of the group. `204`; `404` if it has none. |
+| GET | `/v2/templates/{id}/groups/{group}/versions` | The versions that changed the group, newest first. `?limit=`, `?before={n}`. |
+| GET | `/v2/templates/{id}/groups/{group}/versions/{n}` | `{"rules":[…]}`: the group as it stood at version `n`. |
+| POST | `/v2/templates/{id}/groups/{group}/rollback/{n}` | Restore the group as it stood at version `n`, as a new version, leaving every other rule as it is now. Returns `{"version":m,"rules":[…]}`. |
 | POST | `/v2/templates/{id}/evaluate` | Body: one event or an array of events. Returns the merged fragment(s). `X-Template-Version` header. |
 | POST | `/v2/templates/evaluate` | Body `{"templateIds":[…],"events":[…]}` — several templates over the same events. Returns `{"versions":{id:n},"results":[{id:fragment}…]}`. |
 | POST | `/v2/templates/{id}/explain` | Like evaluate for exactly one event, but reports which rules matched and why the others did not. |
@@ -99,7 +112,8 @@ All routes are under `/v2`. The full OpenAPI document is served at `/openapi/v1.
 
 A document's `ETag` is its version. Send it back as `If-Match` and a write against a version that has
 moved on is refused with `412 Precondition Failed` instead of silently winning. A write with no
-`If-Match` always succeeds (bulk import).
+`If-Match` (bulk import) is last-writer-wins: if another write lands between its read and its commit it
+is retried, and only after 4 such races in a row does it return `409 Conflict`.
 
 ```bash
 curl -si localhost:8080/v2/templates/acme | grep -i etag          # ETag: "1"
@@ -108,11 +122,55 @@ curl -s -X PUT localhost:8080/v2/templates/acme -H 'If-Match: "1"' -H 'content-t
 curl -s -X POST localhost:8080/v2/templates/acme/rollback/1                                                            # new version 3
 ```
 
+### History retention
+
+Every write keeps an immutable snapshot of the new version; old snapshots are pruned on later writes. For
+each template id the service resolves `(RetentionDays, MinVersions)` from the first matching
+`TemplateHistory__Rules__{i}__Pattern` (or the top-level values), and on each write keeps a version if it was
+written within the last `RetentionDays` days, **or** it is the version that was in force when that window
+opened, **or** it is one of the `MinVersions` newest. `RetentionDays=0` keeps everything. A negative value
+stops the service at start. For example, to keep only the last 5 changes of promotion documents and the
+default 90 days for everything else:
+
+```bash
+TemplateHistory__Rules__0__Pattern=promotion-*
+TemplateHistory__Rules__0__RetentionDays=1
+TemplateHistory__Rules__0__MinVersions=5
+```
+
+A snapshot is the whole document and lives in Redis memory, so keep-forever (`RetentionDays=0`) grows by one
+document per write: size it before using it on large, frequently written documents.
+
+### Groups
+
+A rule's optional `group` lets several clients each own a slice of one document. The group routes read,
+replace, delete and roll back all of a group's rules as one versioned write, and leave every other rule
+alone, so a group rollback never reverts somebody else's group. A group has no version counter of its own:
+"version `n` of a group" is document version `n`, and a group's history is the list of document versions
+that changed its rules, whichever route made the change.
+
+The **group ETag** is a hash of the group's stored rules, not the document version, so two clients editing
+different groups never conflict: changes to other groups move the document version and are retried
+internally. Send it back as `If-Match` and a write against a group that has changed since is refused with
+`412`; `If-Match: *` requires the group to exist. A group `PUT` that asks for exactly the rules the group
+already has adds no version (retries are idempotent). Rule names stay unique across the document: a group
+`PUT` naming a rule owned by another group is `400`, and a group rollback that would is `409`. A group's
+rules stay together at the position of its first rule; a new group is appended. Group names are 1 to 256
+characters with no control characters.
+
 ### Rules
 
 A template is `{ "aggregationField": "…", "templates": [ rule… ] }`. A rule is
-`{ "name", "dataToMatch", "matchFragment" }` plus optional `group`, `tags`, and `expiresAt` (a rule past
-its expiry is skipped on evaluate and read, and pruned on the next write). Conditions are conjunctive.
+`{ "name", "dataToMatch", "matchFragment" }` plus optional `group`, `tags`, and `expiresAt`. Conditions are
+conjunctive.
+
+**Ended rules.** A rule whose `expiresAt` has passed never matches (explain reports it as `expired: …`) and
+is hidden from reads unless `?includeExpired=true`. It stays stored until a later rule, group or rollback
+write finds it ended more than `TemplateHistory__ExpiredRuleRetentionDays` ago (per template id pattern;
+default `0`, i.e. the first write after it ends), and only then is dropped; there is no background job. A
+whole-document `PUT` stores exactly the body, so a client that edits whole documents and wants to keep
+ended rules reads with `?includeExpired=true` first; clients that need ended rules kept should write by
+rule or by group. Rule and group ETags cover ended rules.
 
 **`dataToMatch`** — flat form, `{ "eventProperty": condition }`, all must match (property lookup is
 case-insensitive):
@@ -176,6 +234,11 @@ endpoint, never something the service ships or pins a node for.
 ```bash
 kubectl apply -f deploy/k8s/deployment.yaml
 ```
+
+**Redis requirements.** Each write commits the document, its version counter and its history snapshot in
+one `MULTI`/`EXEC` that spans several keys, so Redis must be standalone (or a proxy that allows multi-key
+transactions), not Redis Cluster. History is durable only if Redis never evicts it: run with
+`maxmemory-policy noeviction` (or a `volatile-*` policy; history keys carry no TTL), never `allkeys-*`.
 
 The manifest deliberately has no `nodeSelector`, `affinity` or tolerations. Pin an explicit image
 version (`:2.0`), not `:latest`, in production. Run several replicas freely: a template `PUT` is

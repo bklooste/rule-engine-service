@@ -22,6 +22,8 @@ public class ReadmeConfigTableTests
         };
         var missing = sections
             .SelectMany(s => s.Type.GetProperties().Where(p => p.SetMethod is not null).Select(p => $"{s.Section}__{p.Name}"))
+            // Design 2.1, D4: the per-pattern history rules are a list; the README documents index 0.
+            .Concat(typeof(TemplateHistoryRule).GetProperties().Where(p => p.SetMethod is not null).Select(p => $"{TemplateHistoryOptions.SectionName}__Rules__0__{p.Name}"))
             .Append("ConnectionStrings__Redis").Append("ENVIRONMENT")
             .Where(env => !readme.Contains($"`{env}`"))
             .ToList();

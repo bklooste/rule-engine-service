@@ -6,6 +6,46 @@ actually changed.
 
 ## Unreleased
 
+- History is transactional (design note `docs/design/2.1-history-groups-retention.md`, L1): every write commits
+  the document, its version counter, its snapshot, the version index and a new per-version metadata hash
+  (`…:vmeta`) in one `MULTI`/`EXEC`, conditional on the version it read. 2.0 wrote the snapshot in a second,
+  best-effort transaction, so a fault between the two left a version with no history. Pruning stays a later,
+  separate step and now also removes the version's metadata. `GET v2/templates/{id}/versions` reads the
+  metadata hash instead of every snapshot (falling back to the snapshot for versions written before 2.1).
+- **Behaviour change:** a `PUT v2/templates/{id}` with no `If-Match` (or `If-Match: *`) is retried when another
+  write lands between its read and its commit, and returns `409` after 4 lost races in a row; 2.0 documented
+  that such a write always succeeds.
+- **Behaviour change:** a rollback records its caller as `changedBy` (2.0 copied the author of the restored
+  version).
+- `DELETE v2/templates/{id}` is conditional on the version it read and retried, so a write racing the delete
+  can no longer leave an orphaned snapshot.
+- History retention per template id pattern (L2): `TemplateHistory__MinVersions`, and ordered
+  `TemplateHistory__Rules__{i}__Pattern` / `RetentionDays` / `MinVersions` / `ExpiredRuleRetentionDays`
+  overrides, first match wins; ids no rule matches keep the 90-day default. Options are validated at start.
+- **Behaviour change:** `TemplateHistory__RetentionDays=0` now means "keep every version" (2.0 treated
+  `<= 0` as one day); a negative value stops the service at start.
+- **Behaviour change (fix):** prune keeps the version that was in force when the retention window opened;
+  2.0 deleted it on the first write after it aged out, so "roll back my last edit" could fail.
+- Group routes (L3): `GET`/`PUT`/`DELETE v2/templates/{id}/groups/{group}`, `GET …/groups/{group}/versions`,
+  `GET …/groups/{group}/versions/{n}` and `POST …/groups/{group}/rollback/{n}`. A group write replaces all of
+  the group's rules in one versioned write (creating the document if needed); its `If-Match` is a group ETag
+  (a content hash of the group's stored rules), so edits to different groups never conflict; a no-op group
+  `PUT` adds no version. Every write path records the groups it changed in a per-document group index
+  (`…:gidx`) inside the commit, so group history has no holes. Versions written before 2.1 are not indexed.
+- Ended rules stay stored and listable (L4): a rule, group or rollback write drops a rule only once
+  `expiresAt + ExpiredRuleRetentionDays` has passed (per pattern; default `0` keeps 2.0's behaviour), and
+  `?includeExpired=true` on `GET v2/templates/{id}`, `…/rules/{name}` and `…/groups/{group}` returns them.
+  An ended rule still never matches. A whole-document `PUT` still stores exactly its body.
+- **Behaviour change:** `GET …/rules/{name}` hides an ended rule (`404`) unless `?includeExpired=true`
+  (2.0 returned it); a rule `PUT` to the name of a stored ended rule replaces it in place (2.0 appended it).
+- **Behaviour change:** explain reports an ended rule as `expired: …` instead of `pruned: …`.
+- Fix: the read a write decides on (document and version counter) is one `MULTI`/`EXEC`; 2.0 pipelined the two
+  `GET`s, so another client's commit could land between them and a rule write could silently overwrite it.
+- `GET v2/templates/{id}/versions` gains `?limit=` (default 100, max 1000), `?before={n}` and a `groups` field.
+- A rule `group` must be at most 256 characters with no control characters (`400` otherwise).
+- `Repository` and `V2Logic` take a `TimeProvider` instead of reading `DateTime.UtcNow`.
+- README: Redis must be standalone and must not evict history keys (`noeviction` or a `volatile-*` policy).
+
 - Performance: added a fair "wrapped engine" baseline (deep DTO model, source-generated System.Text.Json) to the benchmarks and an in-repo HTTP host for it (`tst/RuleEngine.Wrapped`, `tst/RuleEngine.WrappedHost`, not shipped); `docs/PERFORMANCE.md` and the README now report engine vs wrapped in-process and over HTTP, including where the engine loses. Corrected earlier single-event figures that used a non-matching event.
 - Added BenchmarkDotNet project `tst/RuleEngine.Benchmarks`, measured HTTP throughput, and `docs/PERFORMANCE.md` with a Performance section in the README.
 - Initial release: extracted from the `plat-templates` service of the lode platform. Same v2 HTTP API, same ETag/`If-Match`

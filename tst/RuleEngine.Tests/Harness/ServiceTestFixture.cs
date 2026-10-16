@@ -14,6 +14,9 @@ public sealed record ServiceTestOptions
 
     /// <summary>Brand for the <c>{{brand}}</c> token.</summary>
     public string Brand { get; init; } = "testBrand";
+
+    /// <summary>Configuration for the service under test, as environment variables (<c>Section__Key</c>).</summary>
+    public IReadOnlyDictionary<string, string> Settings { get; init; } = new Dictionary<string, string>();
 }
 
 /// <summary>
@@ -29,6 +32,9 @@ public abstract class ServiceTestFixture(ServiceTestOptions options) : IAsyncLif
 
     public TestClients Clients { get; private set; } = null!;
 
+    /// <summary>The in-process service's container, for tests that reach below HTTP (repository, clock, keys).</summary>
+    public IServiceProvider Services => factory?.Services ?? throw new InvalidOperationException("the fixture is not initialized");
+
     public async ValueTask InitializeAsync()
     {
         var connection = Environment.GetEnvironmentVariable("RULE_ENGINE_TEST_REDIS");
@@ -43,6 +49,8 @@ public abstract class ServiceTestFixture(ServiceTestOptions options) : IAsyncLif
         // the factory's deferred configuration callbacks run.
         Environment.SetEnvironmentVariable("ConnectionStrings__Redis", connection);
         Environment.SetEnvironmentVariable("ENVIRONMENT", $"test-{Guid.NewGuid():N}");
+        foreach (var (name, value) in Options.Settings)
+            Environment.SetEnvironmentVariable(name, value);
         factory = new WebApplicationFactory<Program>();
         Clients = new TestClients(factory);
     }

@@ -290,7 +290,7 @@ public class V2EvaluateTests(Fixture fixture)
             .RunAsync();
 
     [Fact]
-    public Task explain_reports_an_expired_rule_as_pruned() =>
+    public Task explain_reports_an_ended_rule_as_expired() =>
         fixture.Scenario()
             .WithV2Template(new { name = "stale", dataToMatch = new { eventId = "{{eventId}}" }, matchFragment = new { stale = "yes" }, expiresAt = "{{now-1h}}" })
             .When(Http.Post(V2ExplainPath, OneEvent))
@@ -298,7 +298,7 @@ public class V2EvaluateTests(Fixture fixture)
             {
                 explain.rules.Should().ContainSingle();
                 explain.rules[0].matched.Should().BeFalse();
-                explain.rules[0].note.Should().Contain("pruned");
+                explain.rules[0].note.Should().Contain("expired");
             })
             .RunAsync();
 

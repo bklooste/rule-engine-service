@@ -8,7 +8,21 @@ using Xunit;
 namespace ServiceTests;
 
 // Each scenario stores its own template, named {{guid}}.
-public sealed class Fixture() : ServiceTestFixture(new ServiceTestOptions());
+public sealed class Fixture() : ServiceTestFixture(new ServiceTestOptions { Settings = Settings })
+{
+    // The per-pattern history configuration a consumer of 2.1 runs (design 2.1, D4): ids starting with
+    // "promotion-" keep at least their last 5 versions and keep ended rules for 380 days. Every other id,
+    // including every {{guid}} a scenario writes, takes the defaults.
+    public static readonly IReadOnlyDictionary<string, string> Settings = new Dictionary<string, string>
+    {
+        ["TemplateHistory__Rules__0__Pattern"] = "promotion-*",
+        ["TemplateHistory__Rules__0__RetentionDays"] = "1",
+        ["TemplateHistory__Rules__0__MinVersions"] = "5",
+        ["TemplateHistory__Rules__0__ExpiredRuleRetentionDays"] = "380",
+        ["TemplateHistory__Rules__1__Pattern"] = "loyalty-*",
+        ["TemplateHistory__Rules__1__RetentionDays"] = "0",
+    };
+}
 
 [CollectionDefinition(nameof(ServiceTestCollection))]
 public sealed class ServiceTestCollection : ICollectionFixture<Fixture>;
