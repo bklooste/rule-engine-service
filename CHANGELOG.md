@@ -19,6 +19,14 @@ actually changed.
   version).
 - `DELETE v2/templates/{id}` is conditional on the version it read and retried, so a write racing the delete
   can no longer leave an orphaned snapshot.
+- History retention per template id pattern (L2): `TemplateHistory__MinVersions`, and ordered
+  `TemplateHistory__Rules__{i}__Pattern` / `RetentionDays` / `MinVersions` / `ExpiredRuleRetentionDays`
+  overrides, first match wins; ids no rule matches keep the 90-day default. Options are validated at start.
+- **Behaviour change:** `TemplateHistory__RetentionDays=0` now means "keep every version" (2.0 treated
+  `<= 0` as one day); a negative value stops the service at start.
+- **Behaviour change (fix):** prune keeps the version that was in force when the retention window opened;
+  2.0 deleted it on the first write after it aged out, so "roll back my last edit" could fail.
+- `Repository` and `V2Logic` take a `TimeProvider` instead of reading `DateTime.UtcNow`.
 - README: Redis must be standalone and must not evict history keys (`noeviction` or a `volatile-*` policy).
 
 - Performance: added a fair "wrapped engine" baseline (deep DTO model, source-generated System.Text.Json) to the benchmarks and an in-repo HTTP host for it (`tst/RuleEngine.Wrapped`, `tst/RuleEngine.WrappedHost`, not shipped); `docs/PERFORMANCE.md` and the README now report engine vs wrapped in-process and over HTTP, including where the engine loses. Corrected earlier single-event figures that used a non-matching event.

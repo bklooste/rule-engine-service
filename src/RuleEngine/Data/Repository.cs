@@ -25,21 +25,24 @@ internal class Repository
     private readonly AppJsonSerializerContext context;
     private readonly TemplateHistoryOptions historyOptions;
     private readonly string tenantKeyFormat;
+    private readonly TimeProvider timeProvider;
 
     public Repository(ConnectionMultiplexer connectionMultiplexer, IConfiguration config, ILoggerFactory logFact,
-        IOptions<TemplateHistoryOptions> historyOptions, IOptions<TemplatesOptions> templatesOptions)
+        IOptions<TemplateHistoryOptions> historyOptions, IOptions<TemplatesOptions> templatesOptions, TimeProvider timeProvider)
         : this(Prefixed(connectionMultiplexer, config, templatesOptions.Value), historyOptions.Value,
-            templatesOptions.Value.TenantKeyFormat, logFact.CreateLogger<Repository>())
+            templatesOptions.Value.TenantKeyFormat, timeProvider, logFact.CreateLogger<Repository>())
     {
     }
 
     // Design 2.1, "Tests, per step": a test passes its own database factory so it can wrap the database
-    // and see every command the repository sends.
-    internal Repository(Func<IDatabase> dbFunc, TemplateHistoryOptions historyOptions, string tenantKeyFormat, ILogger<Repository>? logger = null)
+    // and see every command the repository sends, and its own clock so retention can be tested.
+    internal Repository(Func<IDatabase> dbFunc, TemplateHistoryOptions historyOptions, string tenantKeyFormat,
+        TimeProvider? timeProvider = null, ILogger<Repository>? logger = null)
     {
         this.dbFunc = dbFunc;
         this.historyOptions = historyOptions;
         this.tenantKeyFormat = tenantKeyFormat;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
         this.logger = logger ?? NullLogger<Repository>.Instance;
         this.context = AppJsonSerializerContext.GlobalDefault;
     }
@@ -66,7 +69,7 @@ internal class Repository
     // Returns null when the version moved since it was read; the caller re-reads and retries.
     internal async Task<long?> CommitAsync(string templateId, Template next, long observedVersion, IReadOnlyCollection<string> changedGroups)
     {
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         var document = next with { UpdatedAt = now };
         var version = observedVersion + 1;
         var json = JsonSerializer.Serialize(document, context.Template);
@@ -246,33 +249,53 @@ internal class Repository
     }
 
     // Prune-on-write: every write already touches the document, so versions that fall out of the window
-    // are deleted here rather than by a background job. Each pruned version takes its snapshot, its
-    // K:versions member, its K:vmeta field and its K:gidx members with it in one transaction, so the
-    // indexes and the snapshots never disagree.
+    // are deleted here rather than by a background job. Design 2.1, D4, for the id's resolved
+    // (RetentionDays, MinVersions): RetentionDays 0 keeps everything; otherwise a version is kept if it
+    // was written at or after the cutoff, OR it is the highest-numbered version written before the cutoff
+    // (the version in force when the window opened, so every moment inside the window has its version;
+    // 2.0 deleted it), OR it is one of the MinVersions highest-numbered versions. "Highest" is by version
+    // number, not by write time, so clock skew between pods cannot pick the wrong one.
+    //
+    // Each pruned version takes its snapshot, its K:versions member, its K:vmeta field and its K:gidx
+    // members with it in one transaction, so the indexes and the snapshots never disagree.
     private async Task PruneAsync(IDatabase db, string templateId, DateTime now)
     {
-        var cutoff = ToUnixSeconds(now) - (long)historyOptions.Retention.TotalSeconds;
-        var expired = await db.SortedSetRangeByScoreAsync(GetVersionsIndexKey(templateId), double.NegativeInfinity, cutoff);
+        var policy = historyOptions.Resolve(templateId);
+        if (policy.RetentionDays == 0) return;
+
+        var entries = await db.SortedSetRangeByRankWithScoresAsync(GetVersionsIndexKey(templateId));
+        var expired = SelectPruned(entries.Select(e => ((long)e.Element, e.Score)), ToUnixSeconds(now) - (long)policy.RetentionDays * 86400, policy.MinVersions);
         if (expired.Length == 0) return;
 
-        var versions = expired.Select(v => (long)v).ToArray();
-        var metas = await db.HashGetAsync(GetMetaKey(templateId), expired);
+        var members = expired.Select(v => (RedisValue)v).ToArray();
+        var metas = await db.HashGetAsync(GetMetaKey(templateId), members);
         var groupMembers = new List<RedisValue>();
-        for (var i = 0; i < versions.Length; i++)
+        for (var i = 0; i < expired.Length; i++)
         {
             if (!metas[i].HasValue) continue;
             var meta = JsonSerializer.Deserialize(((byte[])metas[i]!).AsSpan(), context.VersionMeta);
             foreach (var group in meta?.Groups ?? [])
-                groupMembers.Add(GroupIndexMember(group, versions[i]));
+                groupMembers.Add(GroupIndexMember(group, expired[i]));
         }
 
         var transaction = db.CreateTransaction();
-        _ = transaction.KeyDeleteAsync([.. versions.Select(v => (RedisKey)GetVersionedKey(templateId, v))]);
-        _ = transaction.SortedSetRemoveAsync(GetVersionsIndexKey(templateId), expired);
-        _ = transaction.HashDeleteAsync(GetMetaKey(templateId), expired);
+        _ = transaction.KeyDeleteAsync([.. expired.Select(v => (RedisKey)GetVersionedKey(templateId, v))]);
+        _ = transaction.SortedSetRemoveAsync(GetVersionsIndexKey(templateId), members);
+        _ = transaction.HashDeleteAsync(GetMetaKey(templateId), members);
         if (groupMembers.Count > 0)
             _ = transaction.SortedSetRemoveAsync(GetGroupIndexKey(templateId), [.. groupMembers]);
         await transaction.ExecuteAsync();
+    }
+
+    // The versions D4 prunes from (version, write time in unix seconds) pairs.
+    internal static long[] SelectPruned(IEnumerable<(long Version, double Written)> versions, long cutoff, int minVersions)
+    {
+        var newestFirst = versions.OrderByDescending(v => v.Version).ToArray();
+        var inForceAtCutoff = Array.Find(newestFirst, v => v.Written < cutoff).Version; // 0 when none
+        return [.. newestFirst
+            .Skip(minVersions)
+            .Where(v => v.Written < cutoff && v.Version != inForceAtCutoff)
+            .Select(v => v.Version)];
     }
 
     private static long ToUnixSeconds(DateTime utc) =>

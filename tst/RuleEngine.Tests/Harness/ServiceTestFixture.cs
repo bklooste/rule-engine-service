@@ -14,6 +14,9 @@ public sealed record ServiceTestOptions
 
     /// <summary>Brand for the <c>{{brand}}</c> token.</summary>
     public string Brand { get; init; } = "testBrand";
+
+    /// <summary>Configuration for the service under test, as environment variables (<c>Section__Key</c>).</summary>
+    public IReadOnlyDictionary<string, string> Settings { get; init; } = new Dictionary<string, string>();
 }
 
 /// <summary>
@@ -46,6 +49,8 @@ public abstract class ServiceTestFixture(ServiceTestOptions options) : IAsyncLif
         // the factory's deferred configuration callbacks run.
         Environment.SetEnvironmentVariable("ConnectionStrings__Redis", connection);
         Environment.SetEnvironmentVariable("ENVIRONMENT", $"test-{Guid.NewGuid():N}");
+        foreach (var (name, value) in Options.Settings)
+            Environment.SetEnvironmentVariable(name, value);
         factory = new WebApplicationFactory<Program>();
         Clients = new TestClients(factory);
     }

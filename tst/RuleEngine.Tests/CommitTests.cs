@@ -196,7 +196,7 @@ public class CommitTests(Fixture fixture)
     }
 
     private V2Logic NewLogic(Repository repository) =>
-        new(repository, fixture.Services.GetRequiredService<DynamicRulesEngine>(), Options.Create(new TemplateApiOptions()));
+        new(repository, fixture.Services.GetRequiredService<DynamicRulesEngine>(), Options.Create(new TemplateApiOptions()), TimeProvider.System);
 
     private static async Task<Dictionary<string, string?>> SnapshotKeysAsync(Repository repository, string id, long upTo)
     {

@@ -61,7 +61,14 @@ Invalid configuration fails at startup with a clear message in the container log
 | `Templates__ChangedByHeader` | string | `userid` | Request header whose value is recorded as `changedBy` on writes. See [Identity](#identity-and-security). |
 | `TemplateApi__MaxEventsPerRequest` | int | `100` | Max events in one evaluate call. |
 | `TemplateApi__MaxTemplateIdsPerRequest` | int | `10` | Max template ids in one multi-template evaluate call. |
-| `TemplateHistory__RetentionDays` | int | `90` | Days a per-version snapshot is kept before it is pruned on the next write. |
+| `TemplateHistory__RetentionDays` | int | `90` | Days a per-version snapshot is kept before it is pruned on the next write. `0` = keep every version. The version that was in force when the window opened is always kept. See [History retention](#history-retention). |
+| `TemplateHistory__MinVersions` | int | `0` | The newest this-many versions of a document are always kept, whatever their age. |
+| `TemplateHistory__ExpiredRuleRetentionDays` | int | `0` | Days a rule stays stored after its `expiresAt` before a write drops it. `0` = dropped by the first write after it ends. |
+| `TemplateHistory__Rules` | list | _(empty)_ | Ordered per-template-id overrides of the three settings above; the first rule whose pattern matches the id wins. Each entry is `TemplateHistory__Rules__{i}__…`: |
+| `TemplateHistory__Rules__0__Pattern` | string | _(required)_ | Matched against the template id, case-sensitive; `*` matches any run of characters, e.g. `promotion-*`. |
+| `TemplateHistory__Rules__0__RetentionDays` | int | _(top-level)_ | Overrides `TemplateHistory__RetentionDays` for matching ids. Unset = the top-level value. |
+| `TemplateHistory__Rules__0__MinVersions` | int | _(top-level)_ | Overrides `TemplateHistory__MinVersions`. |
+| `TemplateHistory__Rules__0__ExpiredRuleRetentionDays` | int | _(top-level)_ | Overrides `TemplateHistory__ExpiredRuleRetentionDays`. |
 | `TemplateVersionCache__Duration` | int (ms) | `5000` | How long a pod trusts its last version check before re-reading Redis. A `PUT` reaches every pod within this window. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | url | _(unset)_ | Standard OpenTelemetry. Unset = nothing exported. Also honours `OTEL_SERVICE_NAME`, `OTEL_EXPORTER_OTLP_PROTOCOL`, etc. |
 | `ASPNETCORE_HTTP_PORTS` | string | `8080` | Listening port. |
@@ -108,6 +115,25 @@ curl -s -X PUT localhost:8080/v2/templates/acme -H 'If-Match: "1"' -H 'content-t
 curl -s -X PUT localhost:8080/v2/templates/acme -H 'If-Match: "1"' -H 'content-type: application/json' -d @doc.json   # 412
 curl -s -X POST localhost:8080/v2/templates/acme/rollback/1                                                            # new version 3
 ```
+
+### History retention
+
+Every write keeps an immutable snapshot of the new version; old snapshots are pruned on later writes. For
+each template id the service resolves `(RetentionDays, MinVersions)` from the first matching
+`TemplateHistory__Rules__{i}__Pattern` (or the top-level values), and on each write keeps a version if it was
+written within the last `RetentionDays` days, **or** it is the version that was in force when that window
+opened, **or** it is one of the `MinVersions` newest. `RetentionDays=0` keeps everything. A negative value
+stops the service at start. For example, to keep only the last 5 changes of promotion documents and the
+default 90 days for everything else:
+
+```bash
+TemplateHistory__Rules__0__Pattern=promotion-*
+TemplateHistory__Rules__0__RetentionDays=1
+TemplateHistory__Rules__0__MinVersions=5
+```
+
+A snapshot is the whole document and lives in Redis memory, so keep-forever (`RetentionDays=0`) grows by one
+document per write: size it before using it on large, frequently written documents.
 
 ### Rules
 

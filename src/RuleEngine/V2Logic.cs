@@ -20,7 +20,7 @@ internal sealed record WriteResult(WriteOutcome Outcome, long Version = 0, strin
 
 // P-14: everything the v2 routes do, so Api/APIv2*.cs stays route wiring and status codes. v1's Logic
 // was deleted with the rest of v1 in P-20; this is the only serving logic left.
-internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options)
+internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider)
 {
     // How many times a write retries when an unrelated concurrent write moved the document version between
     // its read and its conditional commit. D-15: a rule edit must only conflict with an edit to the SAME
@@ -190,7 +190,7 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
                 return Decision.Fail(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
 
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var rules = document.Templates.Where(r => !r.IsExpired(now)).ToList();
             var (mutated, failure) = mutate(rules);
             if (failure != null)
@@ -243,9 +243,9 @@ internal sealed class V2Logic(Repository repository, DynamicRulesEngine engine, 
 
     private static string ChangedByOrUnknown(string? changedBy) => string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy;
 
-    private static Template Prune(Template template)
+    private Template Prune(Template template)
     {
-        var now = DateTime.UtcNow;
+        var now = timeProvider.GetUtcNow().UtcDateTime;
         if (!Array.Exists(template.Templates, r => r.IsExpired(now)))
             return template;
 
