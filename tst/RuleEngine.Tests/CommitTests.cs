@@ -56,6 +56,23 @@ public class CommitTests(Fixture fixture)
         }
     }
 
+    // A writer decides on the document it read and commits conditional on the counter it read, so the two
+    // must come from one MULTI/EXEC: pipelined, another commit could land between them, and the write would
+    // then overwrite that commit's change with its condition still holding (a lost update).
+    [Fact]
+    public async Task the_read_a_write_decides_on_is_one_transaction()
+    {
+        var recorder = new CommandRecorder();
+        var repository = NewRepository(recorder, out _);
+        var id = NewId();
+
+        await repository.ReadAsync(id);
+
+        var reads = recorder.Commands.Where(c => c.Key == repository.GetKey(id) || c.Key == repository.GetVersionKey(id)).ToList();
+        reads.Should().HaveCount(2);
+        reads.Select(c => c.Scope).Distinct().Should().ContainSingle().Which.Should().StartWith("transaction");
+    }
+
     [Fact]
     public async Task a_commit_that_fails_before_exec_changes_nothing()
     {
@@ -196,7 +213,7 @@ public class CommitTests(Fixture fixture)
     }
 
     private V2Logic NewLogic(Repository repository) =>
-        new(repository, fixture.Services.GetRequiredService<DynamicRulesEngine>(), Options.Create(new TemplateApiOptions()), TimeProvider.System);
+        new(repository, fixture.Services.GetRequiredService<DynamicRulesEngine>(), Options.Create(new TemplateApiOptions()), TimeProvider.System, Options.Create(new TemplateHistoryOptions()));
 
     private static async Task<Dictionary<string, string?>> SnapshotKeysAsync(Repository repository, string id, long upTo)
     {

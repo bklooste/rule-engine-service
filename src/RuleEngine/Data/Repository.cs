@@ -117,17 +117,22 @@ internal class Repository
         return version;
     }
 
+    // The document and its counter in one MULTI/EXEC, so they always describe the same commit. A batch
+    // (2.0) is only pipelined: another client's EXEC could land between the two GETs, and a writer that
+    // then decided on version n's document while holding counter n+1 would commit over n+1's change
+    // without its condition noticing (a lost update).
     internal async Task<StoredTemplate> ReadAsync(string templateId)
     {
         var db = this.dbFunc();
-        var batch = db.CreateBatch();
-        var documentTask = batch.StringGetLeaseAsync(GetKey(templateId));
-        var versionTask = batch.StringGetAsync(GetVersionKey(templateId));
-        batch.Execute();
-        using var lease = await documentTask;
+        var transaction = db.CreateTransaction();
+        var documentTask = transaction.StringGetAsync(GetKey(templateId));
+        var versionTask = transaction.StringGetAsync(GetVersionKey(templateId));
+        if (!await transaction.ExecuteAsync())
+            throw new InvalidDataException($"CRITICAL unconditional read of {templateId} did not execute");
+        var documentValue = await documentTask;
         var versionValue = await versionTask;
         var version = versionValue.HasValue ? (long)versionValue : 0;
-        var template = lease == null ? null : JsonSerializer.Deserialize(lease.Span, context.Template);
+        var template = documentValue.HasValue ? JsonSerializer.Deserialize(((byte[])documentValue!).AsSpan(), context.Template) : null;
         return new StoredTemplate(template, version);
     }
 

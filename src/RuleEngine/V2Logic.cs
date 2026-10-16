@@ -20,7 +20,7 @@ internal sealed record WriteResult(WriteOutcome Outcome, long Version = 0, strin
 
 // P-14: everything the v2 routes do, so Api/APIv2*.cs stays route wiring and status codes. v1's Logic
 // was deleted with the rest of v1 in P-20; this is the only serving logic left.
-internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider)
+internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine engine, IOptions<TemplateApiOptions> options, TimeProvider timeProvider, IOptions<TemplateHistoryOptions> historyOptions)
 {
     // How many times a write retries when an unrelated concurrent write moved the document version between
     // its read and its conditional commit. D-15: a rule edit must only conflict with an edit to the SAME
@@ -51,13 +51,13 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
 
     internal Task<Template?> GetVersionAsync(string templateId, long version) => repository.GetVersionDocumentAsync(templateId, version);
 
-    // D-16: expired rules are skipped on read as well as on evaluate, so an admin GET shows the document
-    // the service actually serves. They leave storage the next time something rewrites the document.
-    internal async Task<(Template Template, long Version)?> GetAsync(string templateId)
+    // D-16: ended rules are hidden on read as well as skipped on evaluate, so an admin GET shows the
+    // document the service actually serves; ?includeExpired=true (design 2.1, D6) shows every stored rule.
+    internal async Task<(Template Template, long Version)?> GetAsync(string templateId, bool includeExpired = false)
     {
         var loaded = await repository.GetWithVersionAsync(templateId);
         if (loaded == null) return null;
-        return (Prune(loaded.Value.Template), loaded.Value.Version);
+        return (includeExpired ? loaded.Value.Template : HideEnded(loaded.Value.Template, Now), loaded.Value.Version);
     }
 
     internal async Task<WriteResult> PutAsync(string templateId, Template? template, string? ifMatch, string? changedBy)
@@ -93,7 +93,9 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
                 return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             if (expected != null && stored.Version != expected)
                 return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
-            return new Decision(document, v => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v)), RetryOnRace: expected == null);
+            // A whole-document PUT stores its body as sent, ended rules included, as in 2.0: it is the
+            // one write path DropEnded does not apply to (design 2.1, D6: "replace" means replace).
+            return new Decision(document, (v, _) => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v)), RetryOnRace: expected == null, DropEnded: false);
         });
     }
 
@@ -121,14 +123,18 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
 
         var restored = old with { ChangedBy = ChangedByOrUnknown(changedBy) };
         return await CommitLoopAsync(templateId, _ =>
-            new Decision(restored, v => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v))));
+            new Decision(restored, (v, _) => new WriteResult(WriteOutcome.Ok, v, DocumentETag(v))));
     }
 
-    internal async Task<(DynamicTemplate Rule, string ETag)?> GetRuleAsync(string templateId, string ruleName)
+    // D6: an ended rule is hidden here too unless includeExpired, so every read route agrees. The ETag is
+    // over the stored rule either way.
+    internal async Task<(DynamicTemplate Rule, string ETag)?> GetRuleAsync(string templateId, string ruleName, bool includeExpired = false)
     {
         var loaded = await repository.GetWithVersionAsync(templateId);
         var rule = loaded?.Template.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
-        return rule == null ? null : (rule, RuleETag(rule));
+        if (rule == null || (!includeExpired && rule.IsExpired(Now)))
+            return null;
+        return (rule, RuleETag(rule));
     }
 
     // D-15: rule-level edits, matched on the EXACT name. offer-products' prefix matching (DeleteGroup /
@@ -193,9 +199,9 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
                 return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
             }
 
-            var now = timeProvider.GetUtcNow().UtcDateTime;
-            var rules = document.Templates.Where(r => !r.IsExpired(now)).ToList();
-            var (mutated, failure) = mutate(rules);
+            // The mutation sees every stored rule, ended ones included, so a rule PUT to the name of an
+            // ended rule replaces it in place; the commit loop drops what has outlived its retention (D6).
+            var (mutated, failure) = mutate([.. document.Templates]);
             if (failure != null)
                 return Decision.Stop(failure);
 
@@ -204,14 +210,18 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
                 Templates = [.. mutated!],
                 ChangedBy = ChangedByOrUnknown(changedBy),
             };
-            var written = updated.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
-            return new Decision(updated, v => new WriteResult(WriteOutcome.Ok, v, written == null ? null : RuleETag(written)));
+            return new Decision(updated, (v, committed) =>
+            {
+                var written = committed.Templates.FirstOrDefault(r => string.Equals(r.Name, ruleName, StringComparison.Ordinal));
+                return new WriteResult(WriteOutcome.Ok, v, written == null ? null : RuleETag(written));
+            });
         });
     }
 
     // What a writer decided after reading the stored document: commit Next (and answer with Done once it
-    // has a version), or stop, write nothing and answer with Answer (a failure, or a no-op's success).
-    private sealed record Decision(Template? Next, Func<long, WriteResult>? Done, bool RetryOnRace = true)
+    // has a version, given the document as committed), or stop, write nothing and answer with Answer (a
+    // failure, or a no-op's success).
+    private sealed record Decision(Template? Next, Func<long, Template, WriteResult>? Done, bool RetryOnRace = true, bool DropEnded = true)
     {
         public WriteResult? Answer { get; private init; }
 
@@ -229,10 +239,14 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
             if (decision.Answer != null)
                 return decision.Answer;
 
-            // D3: every write path indexes the groups whose rules it changed, so a group's history has no
-            // holes whichever route changed it.
-            var changedGroups = ChangedGroups(stored.Document, decision.Next!);
-            var newVersion = await repository.CommitAsync(templateId, decision.Next!, stored.Version, changedGroups);
+            // D6: a write drops the rules that ended longer ago than the id's
+            // ExpiredRuleRetentionDays (0 = as soon as they end, the 2.0 behaviour), and D3: indexes the
+            // groups whose rules it changed, which includes a group that lost an ended rule here.
+            var next = decision.DropEnded
+                ? DropEnded(decision.Next!, Now, historyOptions.Value.Resolve(templateId).ExpiredRuleRetentionDays)
+                : decision.Next!;
+            var changedGroups = ChangedGroups(stored.Document, next);
+            var newVersion = await repository.CommitAsync(templateId, next, stored.Version, changedGroups);
             if (newVersion == null)
             {
                 if (!decision.RetryOnRace)
@@ -241,7 +255,7 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
             }
 
             await engine.InvalidateAsync(templateId);
-            return decision.Done!(newVersion.Value);
+            return decision.Done!(newVersion.Value, next);
         }
 
         return WriteResult.Failed(WriteOutcome.Conflict);
@@ -249,13 +263,26 @@ internal sealed partial class V2Logic(Repository repository, DynamicRulesEngine 
 
     private static string ChangedByOrUnknown(string? changedBy) => string.IsNullOrEmpty(changedBy) ? "Unknown" : changedBy;
 
-    private Template Prune(Template template)
-    {
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-        if (!Array.Exists(template.Templates, r => r.IsExpired(now)))
-            return template;
+    private DateTime Now => timeProvider.GetUtcNow().UtcDateTime;
 
-        return template with { Templates = [.. template.Templates.Where(r => !r.IsExpired(now))] };
+    // Design 2.1, D6: V2Logic.Prune did two jobs, hiding on read and dropping on write; they are two
+    // functions with different rules now.
+    //
+    // HideEnded: what a read shows by default, a rule with expiresAt <= now hidden (it never matches).
+    internal static Template HideEnded(Template template, DateTime now) =>
+        Array.Exists(template.Templates, r => r.IsExpired(now))
+            ? template with { Templates = [.. template.Templates.Where(r => !r.IsExpired(now))] }
+            : template;
+
+    // DropEnded: what a write keeps, a rule dropped once expiresAt + retentionDays <= now. With 0 days it
+    // drops exactly what HideEnded hides; a document with a retention keeps ended rules through unrelated
+    // writes, listable with ?includeExpired=true, until the retention has passed.
+    internal static Template DropEnded(Template template, DateTime now, int retentionDays)
+    {
+        bool Gone(DynamicTemplate r) => r.ExpiresAt is { } end && end.AddDays(retentionDays) <= now;
+        return Array.Exists(template.Templates, Gone)
+            ? template with { Templates = [.. template.Templates.Where(r => !Gone(r))] }
+            : template;
     }
 
     // The document's ETag is its version: a value both sides already have, and the one the version-key

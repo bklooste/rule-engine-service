@@ -26,7 +26,10 @@ public sealed class CommandRecorder
 
     public ConcurrentQueue<(string Scope, string Command, string? Key)> Commands { get; } = new();
 
-    /// <summary>Called inside ITransaction.ExecuteAsync before the real EXEC; a throw stands for a failure before EXEC.</summary>
+    /// <summary>
+    /// Called inside ITransaction.ExecuteAsync of a transaction that queued a write, before the real EXEC (reads
+    /// are transactions too, and are left alone); a throw stands for a failure before EXEC.
+    /// </summary>
     public Func<Task>? BeforeExecute { get; set; }
 
     public static bool IsWrite(string command) =>
@@ -76,7 +79,7 @@ public class RecordingProxy<T> : DispatchProxy where T : class
 
     private async Task<bool> ExecuteAsync(MethodInfo method, object?[]? args)
     {
-        if (recorder.BeforeExecute is { } before)
+        if (recorder.BeforeExecute is { } before && recorder.Writes.Any(w => w.Scope == scope))
             await before();
         return await (Task<bool>)Call(method, args)!;
     }

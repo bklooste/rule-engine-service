@@ -24,7 +24,7 @@ public record GroupRollbackResult([property: JsonPropertyName("version")] long V
 // because v2 did not exist yet; the repository methods are unchanged, they are simply exposed here now.
 //
 //   GET    v2/templates                          list every known template id (A11)
-//   GET    v2/templates/{id}                     document + ETag (A8), expired rules pruned (D-16)
+//   GET    v2/templates/{id}                     document + ETag (A8), ended rules hidden (D-16) unless ?includeExpired=true
 //   PUT    v2/templates/{id}                     compile-validated (A7), If-Match (A8), changedBy from userid (A9)
 //   DELETE v2/templates/{id}                     (A11)
 //   GET    v2/templates/{id}/rules/{ruleName}    rule + its own ETag
@@ -55,11 +55,12 @@ public static class APIv2Templates
         app.MapGet("v2/templates/{templateId}", async (
             V2Logic logic,
             [FromRoute] string templateId,
-            HttpResponse response) =>
+            HttpResponse response,
+            [FromQuery] bool? includeExpired) =>
         {
             // Read straight through, never from the compiled cache: an admin's ETag has to describe the
             // version that is in Redis right now, or the If-Match it comes back with is meaningless.
-            var loaded = await logic.GetAsync(templateId);
+            var loaded = await logic.GetAsync(templateId, includeExpired == true);
             if (loaded == null)
                 return APIv2.NoSuchTemplate(templateId);
 
@@ -106,9 +107,10 @@ public static class APIv2Templates
             V2Logic logic,
             [FromRoute] string templateId,
             [FromRoute] string ruleName,
-            HttpResponse response) =>
+            HttpResponse response,
+            [FromQuery] bool? includeExpired) =>
         {
-            var found = await logic.GetRuleAsync(templateId, ruleName);
+            var found = await logic.GetRuleAsync(templateId, ruleName, includeExpired == true);
             if (found == null)
                 return Results.Problem(detail: $"no rule '{ruleName}' in template '{templateId}'", statusCode: (int)HttpStatusCode.NotFound, title: "No such rule");
 
@@ -216,9 +218,10 @@ public static class APIv2Templates
             V2Logic logic,
             [FromRoute] string templateId,
             [FromRoute] string group,
-            HttpResponse response) =>
+            HttpResponse response,
+            [FromQuery] bool? includeExpired) =>
         {
-            var found = await logic.GetGroupAsync(templateId, group);
+            var found = await logic.GetGroupAsync(templateId, group, includeExpired == true);
             if (found == null)
                 return NoSuchGroup(templateId, group);
 

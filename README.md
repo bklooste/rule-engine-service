@@ -91,14 +91,14 @@ All routes are under `/v2`. The full OpenAPI document is served at `/openapi/v1.
 |---|---|---|
 | GET | `/health` | `200` when healthy (includes Redis connectivity). |
 | GET | `/v2/templates` | List template ids. |
-| GET | `/v2/templates/{id}` | The template document. Response carries `ETag: "<version>"` and `X-Template-Version`. `404` if unknown. |
-| PUT | `/v2/templates/{id}` | Create or replace. Every rule is compiled first; one that cannot compile is rejected `400` by name. Honours `If-Match`. Returns `{"version":n}`. |
+| GET | `/v2/templates/{id}` | The template document. Response carries `ETag: "<version>"` and `X-Template-Version`. `404` if unknown. Ended rules are hidden unless `?includeExpired=true`. |
+| PUT | `/v2/templates/{id}` | Create or replace the whole document, ended rules included: rules the body leaves out are gone. Every rule is compiled first; one that cannot compile is rejected `400` by name. Honours `If-Match`. Returns `{"version":n}`. |
 | DELETE | `/v2/templates/{id}` | Delete the template and its history. |
-| GET / PUT / DELETE | `/v2/templates/{id}/rules/{ruleName}` | Read, upsert or delete a single rule. PUT/DELETE honour `If-Match`. |
+| GET / PUT / DELETE | `/v2/templates/{id}/rules/{ruleName}` | Read, upsert or delete a single rule. PUT/DELETE honour `If-Match`. GET hides an ended rule (`404`) unless `?includeExpired=true`. |
 | GET | `/v2/templates/{id}/versions` | Version history (newest first): version, `updatedAt`, `changedBy`, `groups` (the groups that version changed; omitted for versions written before 2.1). `?limit=` (default 100, max 1000), `?before={n}`. |
 | GET | `/v2/templates/{id}/versions/{n}` | The document as it was at version `n`. |
 | POST | `/v2/templates/{id}/rollback/{n}` | Restore version `n` **as a new version** (history is never rewritten). The new version's `changedBy` is the caller. |
-| GET | `/v2/templates/{id}/groups/{group}` | `{"rules":[…]}`: the rules whose `group` is `{group}`, in document order. `ETag` is the group ETag. `404` if the group has no rules. |
+| GET | `/v2/templates/{id}/groups/{group}` | `{"rules":[…]}`: the rules whose `group` is `{group}`, in document order; ended rules hidden unless `?includeExpired=true`. `ETag` is the group ETag. `404` if the group has no stored rules. |
 | PUT | `/v2/templates/{id}/groups/{group}` | Replace every rule of the group in one write. Body `{"aggregationField"?: "…", "rules":[…]}`. Creates the document if it is missing (`aggregationField` then required). Honours a group `If-Match`. Returns `{"version":n}` and the new group `ETag`. |
 | DELETE | `/v2/templates/{id}/groups/{group}` | Remove every rule of the group. `204`; `404` if it has none. |
 | GET | `/v2/templates/{id}/groups/{group}/versions` | The versions that changed the group, newest first. `?limit=`, `?before={n}`. |
@@ -161,8 +161,16 @@ characters with no control characters.
 ### Rules
 
 A template is `{ "aggregationField": "…", "templates": [ rule… ] }`. A rule is
-`{ "name", "dataToMatch", "matchFragment" }` plus optional `group`, `tags`, and `expiresAt` (a rule past
-its expiry is skipped on evaluate and read, and pruned on the next write). Conditions are conjunctive.
+`{ "name", "dataToMatch", "matchFragment" }` plus optional `group`, `tags`, and `expiresAt`. Conditions are
+conjunctive.
+
+**Ended rules.** A rule whose `expiresAt` has passed never matches (explain reports it as `expired: …`) and
+is hidden from reads unless `?includeExpired=true`. It stays stored until a later rule, group or rollback
+write finds it ended more than `TemplateHistory__ExpiredRuleRetentionDays` ago (per template id pattern;
+default `0`, i.e. the first write after it ends), and only then is dropped; there is no background job. A
+whole-document `PUT` stores exactly the body, so a client that edits whole documents and wants to keep
+ended rules reads with `?includeExpired=true` first; clients that need ended rules kept should write by
+rule or by group. Rule and group ETags cover ended rules.
 
 **`dataToMatch`** — flat form, `{ "eventProperty": condition }`, all must match (property lookup is
 case-insensitive):

@@ -37,7 +37,7 @@ internal static class V2Explain
         {
             if (rule.Source.IsExpired(now))
             {
-                rules.Add(new ExplainRule(rule.Name, false, $"pruned: expiresAt {rule.ExpiresAt:o} has passed", [], [], null));
+                rules.Add(new ExplainRule(rule.Name, false, $"expired: expiresAt {rule.ExpiresAt:o} has passed", [], [], null));
                 continue;
             }
 

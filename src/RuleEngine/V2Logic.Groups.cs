@@ -105,15 +105,17 @@ internal sealed partial class V2Logic
             _ => storedGroup.Length > 0 && GroupETagValue(storedGroup) == ifMatch,
         };
 
-    internal async Task<GroupView?> GetGroupAsync(string templateId, string group)
+    // 404 (null) only when the group has no stored rules; a group whose rules have all ended is an empty
+    // list by default, so a client can still read its ETag. The ETag covers ended rules (D6).
+    internal async Task<GroupView?> GetGroupAsync(string templateId, string group, bool includeExpired = false)
     {
         var stored = await repository.ReadAsync(templateId);
         var rules = RulesOf(stored.Document, group);
         if (rules.Length == 0)
             return null;
 
-        var now = timeProvider.GetUtcNow().UtcDateTime;
-        return new GroupView([.. rules.Where(r => !r.IsExpired(now))], Quote(GroupETagValue(rules)), stored.Version);
+        var now = Now;
+        return new GroupView(includeExpired ? rules : [.. rules.Where(r => !r.IsExpired(now))], Quote(GroupETagValue(rules)), stored.Version);
     }
 
     internal async Task<DynamicTemplate[]?> GetGroupVersionAsync(string templateId, string group, long version)
@@ -165,13 +167,12 @@ internal sealed partial class V2Logic
                 return Decision.Stop(WriteResult.Failed(WriteOutcome.PreconditionFailed));
 
             // Every rule of the group goes, ended ones included.
-            var now = timeProvider.GetUtcNow().UtcDateTime;
             var next = stored.Document! with
             {
-                Templates = [.. stored.Document.Templates.Where(r => !InGroup(r, group) && !r.IsExpired(now))],
+                Templates = [.. stored.Document.Templates.Where(r => !InGroup(r, group))],
                 ChangedBy = ChangedByOrUnknown(changedBy),
             };
-            return new Decision(next, v => new WriteResult(WriteOutcome.Ok, v));
+            return new Decision(next, (v, _) => new WriteResult(WriteOutcome.Ok, v));
         });
 
     // D5: restore the group as it stood at document version n, as a new version. It is then a group PUT of
@@ -231,15 +232,13 @@ internal sealed partial class V2Logic
             if (stored.Document != null && storedGroup.Length > 0 && GroupETagValue(storedGroup) == etag)
                 return Decision.Stop(new WriteResult(WriteOutcome.Ok, stored.Version, Quote(etag)));
 
-            var now = timeProvider.GetUtcNow().UtcDateTime;
             var document = stored.Document ?? new Template([], createWithAggregationField!);
             var next = document with
             {
-                Templates = [.. Place(storedRules, group, rules).Where(r => !r.IsExpired(now))],
+                Templates = Place(storedRules, group, rules),
                 ChangedBy = ChangedByOrUnknown(changedBy),
             };
-            var written = GroupETagValue(RulesOf(next, group));
-            return new Decision(next, v => new WriteResult(WriteOutcome.Ok, v, Quote(written)));
+            return new Decision(next, (v, committed) => new WriteResult(WriteOutcome.Ok, v, Quote(GroupETagValue(RulesOf(committed, group)))));
         });
     }
 

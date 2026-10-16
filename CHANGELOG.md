@@ -32,6 +32,15 @@ actually changed.
   (a content hash of the group's stored rules), so edits to different groups never conflict; a no-op group
   `PUT` adds no version. Every write path records the groups it changed in a per-document group index
   (`…:gidx`) inside the commit, so group history has no holes. Versions written before 2.1 are not indexed.
+- Ended rules stay stored and listable (L4): a rule, group or rollback write drops a rule only once
+  `expiresAt + ExpiredRuleRetentionDays` has passed (per pattern; default `0` keeps 2.0's behaviour), and
+  `?includeExpired=true` on `GET v2/templates/{id}`, `…/rules/{name}` and `…/groups/{group}` returns them.
+  An ended rule still never matches. A whole-document `PUT` still stores exactly its body.
+- **Behaviour change:** `GET …/rules/{name}` hides an ended rule (`404`) unless `?includeExpired=true`
+  (2.0 returned it); a rule `PUT` to the name of a stored ended rule replaces it in place (2.0 appended it).
+- **Behaviour change:** explain reports an ended rule as `expired: …` instead of `pruned: …`.
+- Fix: the read a write decides on (document and version counter) is one `MULTI`/`EXEC`; 2.0 pipelined the two
+  `GET`s, so another client's commit could land between them and a rule write could silently overwrite it.
 - `GET v2/templates/{id}/versions` gains `?limit=` (default 100, max 1000), `?before={n}` and a `groups` field.
 - A rule `group` must be at most 256 characters with no control characters (`400` otherwise).
 - `Repository` and `V2Logic` take a `TimeProvider` instead of reading `DateTime.UtcNow`.
