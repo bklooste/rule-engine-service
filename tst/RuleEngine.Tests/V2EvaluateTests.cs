@@ -235,7 +235,7 @@ public class V2EvaluateTests(Fixture fixture)
                 rule.conditions[0].status.Should().Be("passed");
                 rule.conditions[1].status.Should().Be("failed");
                 rule.conditions[1].reason.Should().Contain("AEvent").And.Contain("Racing");
-                explain.result.Should().BeEmpty();
+                explain.result.Count.Should().Be(0);
             })
             .RunAsync();
 
