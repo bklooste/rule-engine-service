@@ -50,7 +50,11 @@ internal class Repository
     private static Func<IDatabase> Prefixed(ConnectionMultiplexer connectionMultiplexer, IConfiguration config, TemplatesOptions options)
     {
         var environment = config["ENVIRONMENT"] ?? "local";
-        var prefix = string.IsNullOrEmpty(options.KeyPrefix) ? $"{environment}:plat-templates:" : options.KeyPrefix;
+        // The environment is always the first segment so several environments can share one Redis; KeyPrefix is the
+        // logical segment(s) after it, defaulting to "templates". So the key is {ENVIRONMENT}:{KeyPrefix}:{tenant-key}
+        // — e.g. "dev:templates:" by default, or "dev:util:templates:" when the host sets KeyPrefix=util:templates.
+        var segment = string.IsNullOrEmpty(options.KeyPrefix) ? "templates" : options.KeyPrefix;
+        var prefix = $"{environment}:{segment}:";
         return () => connectionMultiplexer.GetDatabase().WithKeyPrefix(prefix);
     }
 

@@ -55,8 +55,8 @@ Invalid configuration fails at startup with a clear message in the container log
 | Env var | Type | Default | Description |
 |---|---|---|---|
 | `ConnectionStrings__Redis` | string | _(required)_ | Redis connection string, e.g. `redis:6379,password=…`. The service fails to start without it. |
-| `ENVIRONMENT` | string | `local` | Namespaces every Redis key (`{ENVIRONMENT}:plat-templates:…`) so several environments can share one Redis. |
-| `Templates__KeyPrefix` | string | _(empty)_ | Overrides the whole key prefix. Empty = `{ENVIRONMENT}:plat-templates:`. `[A-Za-z0-9:_.-]*`. |
+| `ENVIRONMENT` | string | `local` | Always the first key segment (`{ENVIRONMENT}:{KeyPrefix}:…`) so several environments can share one Redis. |
+| `Templates__KeyPrefix` | string | _(empty)_ | Logical segment(s) between the environment and the tenant key. Empty = `templates`, so `{ENVIRONMENT}:templates:`; set e.g. `util:templates` for `{ENVIRONMENT}:util:templates:`. No trailing `:`. `[A-Za-z0-9:_.-]*`. |
 | `Templates__TenantKeyFormat` | string | `{tenant}-templates` | Redis key for one template id; must contain `{tenant}`. The default keeps the key shape of the `plat-templates` service this was extracted from. |
 | `Templates__ChangedByHeader` | string | `userid` | Request header whose value is recorded as `changedBy` on writes. See [Identity](#identity-and-security). |
 | `TemplateApi__MaxEventsPerRequest` | int | `100` | Max events in one evaluate call. |
