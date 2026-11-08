@@ -13,8 +13,11 @@ public sealed class TemplatesOptions
     public const string SectionName = "Templates";
 
     /// <summary>
-    /// Prefix for every Redis key the service writes, so several environments can share one Redis.
-    /// Empty (default) means <c>{ENVIRONMENT}:plat-templates:</c>, the shape plat-templates always used.
+    /// The logical key segment(s) between the environment and the tenant key: the Redis key is
+    /// <c>{ENVIRONMENT}:{KeyPrefix}:{tenant-key}</c>. The environment is always first, so several environments can
+    /// share one Redis. Empty (default) means the segment <c>templates</c> (<c>{ENVIRONMENT}:templates:</c>); a host
+    /// sets it to its own name, e.g. <c>util:templates</c>, giving <c>{ENVIRONMENT}:util:templates:</c>. No trailing
+    /// separator — the service adds the surrounding <c>:</c>.
     /// </summary>
     public string KeyPrefix { get; set; } = "";
 

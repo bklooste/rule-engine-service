@@ -4,6 +4,15 @@ Every push to `main` publishes a new patch version automatically (see `version.j
 not manually tagged), so not every version number gets its own entry here. This file tracks what
 actually changed.
 
+## Unreleased
+
+- **Behaviour change (key prefix):** the Redis key is now `{ENVIRONMENT}:{KeyPrefix}:{tenant-key}`, with the
+  environment **always** first and `KeyPrefix` the logical segment(s) after it (default `templates`). Previously an
+  empty `Templates__KeyPrefix` meant `{ENVIRONMENT}:plat-templates:` and a set value replaced the whole prefix,
+  dropping the environment. The default is no longer `plat-templates`, and a host now sets `KeyPrefix` to its own name
+  (e.g. `util:templates`) to get `{ENVIRONMENT}:util:templates:` while keeping environment isolation. A deployment that
+  relied on the `plat-templates` default, or on a whole-prefix override, must set `KeyPrefix` and migrate its keys.
+
 ## 2.1.0 (2026-10-16)
 
 - History is transactional (design note `docs/design/2.1-history-groups-retention.md`, L1): every write commits
