@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Self-contained: builds from this repo's own tree only. Nothing outside the build context is referenced.
 # Native AOT: the runtime image needs no .NET runtime at all, only the chiselled native dependencies.
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 ARG TARGETARCH
 ARG VERSION=0.0.0
 RUN apt-get update && apt-get install -y --no-install-recommends clang zlib1g-dev && rm -rf /var/lib/apt/lists/*
