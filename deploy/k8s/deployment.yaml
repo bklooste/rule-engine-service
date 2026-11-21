@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: service
-          image: ghcr.io/bklooste/rule-engine-service/service:2.0   # pin an explicit version
+          image: kaisea/rule-engine-service:2.0   # pin an explicit version
           ports:
             - containerPort: 8080
           env:
