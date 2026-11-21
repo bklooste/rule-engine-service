@@ -1,7 +1,7 @@
 # rule-engine-service
 
 [![CI](https://github.com/bklooste/rule-engine-service/actions/workflows/ci.yml/badge.svg)](https://github.com/bklooste/rule-engine-service/actions/workflows/ci.yml)
-[![Image](https://img.shields.io/badge/ghcr.io-rule--engine--service-blue)](https://github.com/bklooste/rule-engine-service/pkgs/container/rule-engine-service%2Fservice)
+[![Docker Hub](https://img.shields.io/docker/v/kaisea/rule-engine-service?label=docker%20hub)](https://hub.docker.com/r/kaisea/rule-engine-service)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 **Rules over HTTP, without the JSON tax.** Post JSON events, get merged results back — the engine works
@@ -41,7 +41,7 @@ Just the image (needs a reachable Redis):
 
 ```bash
 docker run --rm -p 8080:8080 -e ConnectionStrings__Redis=host.docker.internal:6379 \
-  ghcr.io/bklooste/rule-engine-service/service:latest
+  kaisea/rule-engine-service:latest
 ```
 
 Images are public on GHCR — no pull secret. Multi-arch (`linux/amd64`, `linux/arm64`).
