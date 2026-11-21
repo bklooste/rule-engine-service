@@ -10,7 +10,7 @@ services:
       retries: 10
 
   service:
-    image: kaisea/rule-engine-service:latest
+    image: bklooste/rule-engine-service:latest
     # build: .          # uncomment to build from source instead of pulling
     ports:
       - "8080:8080"

@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  IMAGE: docker.io/kaisea/rule-engine-service
+  IMAGE: docker.io/bklooste/rule-engine-service
 
 jobs:
   test:
